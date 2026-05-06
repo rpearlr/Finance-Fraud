@@ -36,7 +36,7 @@ Legit cases      : 284,315
   V27                  mean=   -0.0000  std=    0.4036  min=  -22.5657  max=   31.6122
   V28                  mean=   -0.0000  std=    0.3301  min=  -15.4301  max=   33.8478
   Class                mean=    0.0017  std=    0.0415  min=    0.0000  max=    1.0000
-  amount_zscore        mean=    0.0000  std=    1.0000  min=   -0.3532  max=  102.3621
+  amount_zscore        mean=   -0.0000  std=    1.0000  min=   -0.3532  max=  102.3621
   time_hours           mean=   26.3372  std=   13.1912  min=    0.0000  max=   47.9978
   velocity_24tx        mean= 2120.3534  std= 1314.3918  min=   24.7900  max=28871.9500
   tx_count_24          mean=   23.9990  std=    0.1232  min=    1.0000  max=   24.0000

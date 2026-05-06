@@ -1,0 +1,40 @@
+============================================================
+FRAUD CLASSIFIER EVALUATION REPORT
+Generated: 2026-05-06 11:27:23
+Model: XGBoost  |  Features: 32
+============================================================
+
+-- Test Set Metrics --
+  AUC-ROC   : 0.9798
+  Precision : 0.8454
+  Recall    : 0.8367
+  F1 Score  : 0.8410
+
+-- Confusion Matrix --
+  True Positives  (caught fraud)    :     82
+  False Positives (false alarms)    :     15
+  True Negatives  (correct legit)   :  56849
+  False Negatives (missed fraud)    :     16
+
+-- Cross-Validation (5-fold, training set) --
+  Scores : [np.float64(0.9941), np.float64(0.972), np.float64(0.9746), np.float64(0.9933), np.float64(0.9822)]
+  Mean   : 0.9833
+  Std    : 0.0092
+
+-- Top 10 Feature Importances --
+  V14                  0.4284  #####################
+  V4                   0.0689  ###
+  V10                  0.0519  ##
+  V12                  0.0318  #
+  V20                  0.0301  #
+  V8                   0.0271  #
+  amount_log           0.0247  #
+  V17                  0.0240  #
+  V19                  0.0234  #
+  amount_zscore        0.0219  #
+
+-- Output Files --
+  Model (pickle) : ml\models\fraud_model.pkl
+  Model (ONNX)   : ml\models\fraud_model.onnx
+  Feature names  : ml\models\feature_names.txt
+============================================================
