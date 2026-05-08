@@ -2,6 +2,7 @@
 .venv/
 __pycache__/
 *.pkl
-
-data/raw/creditcard.csv
-data/staged/transactions_staged.csv
+.gitignore
+.gitattributes
+seed_db.py
+.dockerignore
