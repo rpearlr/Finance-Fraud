@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Forecast | FinRisk AI Platform</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .forecast-card {
+      padding: 24px;
+    }
+    .grid-lines line {
+      stroke: var(--color-border-tertiary);
+      stroke-width: 0.5px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--color-text-secondary);
+    }
+    .legend-color {
+      width: 12px;
+      height: 4px;
+      border-radius: 2px;
+    }
+    .legend-rect {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      background-color: rgba(127, 119, 221, 0.2);
+    }
+    
+    .pill-tabs {
+      display: inline-flex;
+      background-color: var(--color-background-secondary);
+      border-radius: var(--border-radius-pill);
+      padding: 4px;
+    }
+    .pill-btn {
+      padding: 4px 12px;
+      border-radius: var(--border-radius-pill);
+      font-size: 12px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+    }
+    .pill-btn.active {
+      background-color: var(--color-background-primary);
+      color: var(--color-text-primary);
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    
+    .alloc-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .alloc-label {
+      width: 60px;
+    }
+    .alloc-val {
+      width: 40px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <div class="logo-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        </div>
+        <span class="logo-name">FinRisk AI</span>
+      </button>
+    </div>
+    <div class="context">Portfolio Analytics</div>
+    <div class="topbar-right">
+      <div class="status-dot">
+        <div class="dot"></div>
+        Operational
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Navigation</div>
+      <a href="finrisk_kpi_dashboard.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="sidebar-item-text">Overview</span>
+      </a>
+      <a href="finrisk_fraud_detection.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span class="sidebar-item-text">Fraud Detection</span>
+      </a>
+      <a href="finrisk_portfolio_forecast.html" class="sidebar-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="sidebar-item-text">Portfolio</span>
+      </a>
+      <a href="finrisk_regulatory_search.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="sidebar-item-text">Regulatory</span>
+      </a>
+      <a href="finrisk_ai_agents.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sidebar-item-text">AI Agents</span>
+      </a>
+            <a href="finrisk_reports.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="sidebar-item-text">Reports</span>
+      </a>
+      <a href="finrisk_model_outputs.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="sidebar-item-text">Model Outputs</span>
+      </a>
+    </div>
+
+    <div class="main">
+      <h1 class="page-title">Portfolio Forecast</h1>
+
+      <div class="grid-4">
+        <div class="card kpi-card">
+          <div class="kpi-label">Total AUM</div>
+          <div class="kpi-value-row">
+            <span id="kpi-aum" class="kpi-value">₹482 Cr</span>
+          </div>
+        </div>
+        <div class="card kpi-card">
+          <div id="kpi-forecast-label" class="kpi-label">30-day forecast</div>
+          <div class="kpi-value-row">
+            <span id="kpi-forecast" class="kpi-value">₹501 Cr</span>
+            <span id="kpi-forecast-delta" class="delta positive">+3.9%</span>
+          </div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Sharpe ratio</div>
+          <div class="kpi-value-row">
+            <span class="kpi-value">1.42</span>
+          </div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Max drawdown</div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" style="color: var(--danger-red);">-4.3%</span>
+            <span class="muted" style="font-size: 11px; font-weight: normal;">Within tolerance</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Chart Card -->
+      <div class="card forecast-card mb-4" style="display: flex; flex-direction: column;">
+        <div class="flex-row" style="justify-content: space-between; margin-bottom: 20px;">
+          <h3 class="weight-500">Prophet Model Forecast (INR Cr)</h3>
+          
+          <div class="pill-tabs">
+            <button class="pill-btn active">30d</button>
+            <button class="pill-btn">60d</button>
+            <button class="pill-btn">90d</button>
+          </div>
+        </div>
+
+        <div style="height: 300px; width: 100%; position: relative;">
+          <svg id="forecastSVG" viewBox="0 0 600 150" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+            <!-- Grid Lines -->
+            <g class="grid-lines">
+              <line x1="0" y1="25" x2="600" y2="25" />
+              <line x1="0" y1="75" x2="600" y2="75" />
+              <line x1="0" y1="125" x2="600" y2="125" />
+            </g>
+            
+            <!-- Dynamic elements will be inserted here -->
+            <g id="svg-content">
+              <!-- Handoff line -->
+              <line x1="420" y1="10" x2="420" y2="140" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4,4" />
+              <text x="425" y="140" fill="var(--color-text-secondary)" font-size="10" font-family="var(--font-sans)">forecast &rarr;</text>
+              
+              <!-- Confidence Interval Band -->
+              <path d="M420,60 C480,50 540,20 600,10 L600,110 C540,115 480,90 420,60 Z" fill="var(--purple)" fill-opacity="0.08" />
+              
+              <!-- Historical Path (Green) -->
+              <path d="M0,120 C100,110 200,130 300,90 C360,66 380,70 420,60" fill="none" stroke="var(--brand-green)" stroke-width="2" />
+              
+              <!-- Forecast Path (Purple) -->
+              <path d="M420,60 C480,55 540,40 600,30" fill="none" stroke="var(--purple)" stroke-width="2" stroke-dasharray="6,4" />
+              
+              <!-- Handoff Dot -->
+              <circle cx="420" cy="60" r="4" fill="var(--brand-green)" />
+            </g>
+          </svg>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex-row" style="margin-top: 16px; justify-content: center; gap: 20px;">
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: var(--brand-green);"></div>
+            Actual
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background-color: var(--purple); border-bottom: 2px dashed #fff;"></div>
+            Forecast
+          </div>
+          <div class="legend-item">
+            <div class="legend-rect"></div>
+            Confidence interval (95%)
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row -->
+      <div class="grid-1-16">
+        <!-- Custom Upload -->
+        <div class="card">
+          <h3 class="mb-4 weight-500">Custom Data Forecast</h3>
+          <p class="muted mb-4" style="font-size: 13px;">Upload your own historical portfolio values (CSV: date, value) to generate a dynamic Holt-Winters forecast.</p>
+          
+          <div id="drop-zone" style="border: 1px dashed var(--color-border-secondary); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: background 0.2s;">
+            <div class="muted mb-2">Drag & Drop CSV here or Click to Upload</div>
+            <input type="file" id="csv-upload" accept=".csv" style="display: none;">
+            <button class="btn btn-primary" onclick="document.getElementById('csv-upload').click()">Browse Files</button>
+          </div>
+          
+          <div id="upload-status" class="mt-4" style="font-size: 13px; font-weight: 500;"></div>
+        </div>
+
+        <!-- Asset Allocation -->
+        <div class="card">
+          <h3 class="mb-4 weight-500">Asset Allocation</h3>
+          
+          <div class="alloc-item">
+            <div class="alloc-label">Equity</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 75.0%; background-color: var(--brand-green);"></div></div>
+            <div class="alloc-val">75.0%</div>
+          </div>
+          <div class="alloc-item">
+            <div class="alloc-label">Debt</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 15.0%; background-color: var(--purple);"></div></div>
+            <div class="alloc-val">15.0%</div>
+          </div>
+          <div class="alloc-item">
+            <div class="alloc-label">Alternatives</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 5.0%; background-color: var(--amber);"></div></div>
+            <div class="alloc-val">5.0%</div>
+          </div>
+          <div class="alloc-item">
+            <div class="alloc-label">Cash</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 5.0%; background-color: var(--color-border-secondary);"></div></div>
+            <div class="alloc-val">5.0%</div>
+          </div>
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    let currentFile = null;
+    let currentDays = 30;
+
+    // Handle Tabs
+    const tabs = document.querySelectorAll('.pill-btn');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', async (e) => {
+        tabs.forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        currentDays = parseInt(e.target.innerText.replace('d', ''));
+        if (currentFile) {
+          await processFile(currentFile, currentDays);
+        }
+      });
+    });
+
+    // Handle Upload
+    const fileInput = document.getElementById('csv-upload');
+    const dropZone = document.getElementById('drop-zone');
+    
+    fileInput.addEventListener('change', async (e) => {
+      if(e.target.files.length > 0) {
+        currentFile = e.target.files[0];
+        await processFile(currentFile, currentDays);
+      }
+    });
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = 'var(--color-background-primary)'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = 'transparent'; });
+    dropZone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = 'transparent';
+      if(e.dataTransfer.files.length > 0) {
+        currentFile = e.dataTransfer.files[0];
+        await processFile(currentFile, currentDays);
+      }
+    });
+
+    async function processFile(file, days) {
+      document.getElementById('upload-status').innerText = `Training Holt-Winters model on ${file.name}...`;
+      document.getElementById('upload-status').style.color = "var(--color-text-primary)";
+      
+      const result = await uploadPortfolioData(file, days);
+      if (result && result.data) {
+        document.getElementById('upload-status').innerText = `Successfully trained and forecasted ${days} days!`;
+        document.getElementById('upload-status').style.color = "var(--brand-green)";
+        renderForecastChart(result.data);
+      } else {
+        document.getElementById('upload-status').innerText = `Failed to generate forecast.`;
+        document.getElementById('upload-status').style.color = "var(--danger-red)";
+      }
+    }
+
+    function renderForecastChart(data) {
+      if (!data || data.length === 0) return;
+      
+      const svgW = 600;
+      const svgH = 150;
+      
+      const minY = Math.min(...data.map(d => d.yhat_lower || d.yhat));
+      const maxY = Math.max(...data.map(d => d.yhat_upper || d.yhat));
+      const rangeY = maxY - minY || 1;
+      
+      const mapY = (val) => svgH - 10 - ((val - minY) / rangeY) * (svgH - 20); // 10px padding
+      
+      const mapX = (index) => (index / (data.length - 1)) * svgW;
+      
+      let histPath = "M";
+      let forePath = "M";
+      let ciPathUpper = "M";
+      let ciPathLower = "L";
+      
+      let handoffX = -1;
+      let handoffY = -1;
+      
+      const histPoints = [];
+      const forePoints = [];
+      const lowerPoints = [];
+      
+      data.forEach((d, i) => {
+        const x = mapX(i);
+        const y = mapY(d.yhat);
+        
+        if (!d.is_forecast) {
+          histPoints.push(`${x},${y}`);
+          handoffX = x;
+          handoffY = y;
+        } else {
+          if (forePoints.length === 0 && handoffX !== -1) {
+            forePoints.push(`${handoffX},${handoffY}`); // Connect line
+            ciPathUpper += `${handoffX},${handoffY} `;
+            lowerPoints.push(`${handoffX},${handoffY}`);
+          }
+          forePoints.push(`${x},${y}`);
+          ciPathUpper += `${x},${mapY(d.yhat_upper)} `;
+          lowerPoints.push(`${x},${mapY(d.yhat_lower)}`);
+        }
+      });
+      
+      // Build CI polygon
+      lowerPoints.reverse();
+      const ciPathFull = ciPathUpper + " L " + lowerPoints.join(" L ") + " Z";
+      
+      const svgContent = document.getElementById('svg-content');
+      svgContent.innerHTML = `
+        <line x1="${handoffX}" y1="0" x2="${handoffX}" y2="${svgH}" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4,4" />
+        <text x="${handoffX + 5}" y="${svgH - 10}" fill="var(--color-text-secondary)" font-size="10" font-family="var(--font-sans)">forecast &rarr;</text>
+        <path d="${ciPathFull}" fill="var(--purple)" fill-opacity="0.08" />
+        <path d="M${histPoints.join(" L")}" fill="none" stroke="var(--brand-green)" stroke-width="2" />
+        <path d="M${forePoints.join(" L")}" fill="none" stroke="var(--purple)" stroke-width="2" stroke-dasharray="6,4" />
+        <circle cx="${handoffX}" cy="${handoffY}" r="4" fill="var(--brand-green)" />
+      `;
+      
+      // Update KPIs
+      const historicalData = data.filter(d => !d.is_forecast);
+      const forecastData = data.filter(d => d.is_forecast);
+      
+      if (historicalData.length > 0 && forecastData.length > 0) {
+        const lastHistorical = historicalData[historicalData.length - 1].yhat;
+        const lastForecast = forecastData[forecastData.length - 1].yhat;
+        
+        const formatCurrency = (val) => {
+          if (val > 1000000) return '₹' + (val / 10000000).toFixed(2) + ' Cr';
+          return '₹' + Math.round(val).toLocaleString();
+        };
+        
+        document.getElementById('kpi-aum').innerText = formatCurrency(lastHistorical);
+        document.getElementById('kpi-forecast-label').innerText = `${forecastData.length}-day forecast`;
+        document.getElementById('kpi-forecast').innerText = formatCurrency(lastForecast);
+        
+        const deltaPct = ((lastForecast - lastHistorical) / lastHistorical) * 100;
+        const deltaEl = document.getElementById('kpi-forecast-delta');
+        deltaEl.innerText = (deltaPct > 0 ? '+' : '') + deltaPct.toFixed(1) + '%';
+        deltaEl.className = 'delta ' + (deltaPct >= 0 ? 'positive' : 'negative');
+      }
+    }
+  </script>
+</body>
+</html>

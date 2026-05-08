@@ -1,9 +1,7 @@
-# .gitignore
 .env
 .venv/
 __pycache__/
 *.pkl
-.data/
+
+data/raw/creditcard.csv
 data/staged/transactions_staged.csv
-data/staged/transactions_staged.csv
-data/raw/creditcard.csv 

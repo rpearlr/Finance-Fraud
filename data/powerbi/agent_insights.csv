@@ -1,0 +1,39 @@
+created_at,agent_used,question,answer_preview,latency_ms
+2026-05-07 06:45:39,rag_agent,SEBI AIF Category II disclosure requirements,Category II Alternative Investment Funds (AIFs) have specific disclosure requirements primarily related to their investment focus and compliance declarations. They must disclose their investment strat,10963
+2026-05-07 05:21:59,investment_agent,What is a good asset allocation for a moderate risk profile?,"<think>
+
+Okay, let's tackle this question about asset allocation for a moderate risk profile. First, I need to understand what a moderate risk profile means. From what I remember, a moderate risk inve",54480
+2026-05-07 05:20:38,investment_agent,What is a good asset allocation for a moderate risk profile?,"**Investment Guidance for a Moderate Risk Profile**
+
+**Assessment of Risk Profile**  
+A ""moderate risk profile"" implies a willingness to achieve growth while balancing risk through diversification. In",50124
+2026-05-07 05:17:45,investment_agent,What is a good asset allocation for a moderate risk profile?,"**Investment Guidance for a Moderate Risk Profile**
+
+**1. Risk Profile Assessment**  
+A ""moderate risk profile"" implies a willingness to accept moderate market volatility in exchange for potential gro",51321
+2026-05-07 04:25:35,investment_agent,what are some good investments to make,"**Investment Guidance for ""What Are Some Good Investments to Make""**
+
+**Step 1: Assess Risk Profile**  
+Before recommending investments, determine your risk tolerance:  
+- **Conservative**: Prefer sta",50317
+2026-05-07 04:14:51,fraud_expert_agent,Why did TX-94821 score 0.94?,"**1. Why this transaction received this fraud score**  
+The transaction scored a **0.03% fraud probability** because the combination of its feature values did not deviate significantly from typical no",46203
+2026-05-07 04:12:35,fraud_expert_agent,Why did TX-94821 score 0.94?,"**1. Fraud Score Explanation**  
+The transaction received a **0.03% fraud probability** and **LOW risk** because the XGBoost model detected subtle, non-obvious patterns in the behavioral features that",36242
+2026-05-07 04:09:03,fraud_expert_agent,Why did TX-94821 score 0.94?,"<think>
+
+Okay, let's tackle this explanation step by step. The user wants a detailed breakdown of why TX-94821 has a low fraud score, the suspicious features, potential fraud patterns, and what to loo",34826
+2026-05-07 04:05:24,fraud_expert_agent,Why did TX-94821 score 0.94?,"<think>
+
+Okay, let's tackle this fraud detection explanation. The transaction ID is TX-94821 with a fraud score of 0.0003, which translates to a 0.03% probability. The risk level is LOW, so the system",34965
+2026-05-07 03:58:34,fraud_expert_agent,Why did TX-94821 score 0.94?,"<think>
+
+Okay, let me start by understanding what's being asked here. The user provided a transaction report from an XGBoost fraud classifier and wants an explanation covering four points. I need to b",41299
+2026-05-07 03:48:24,fraud_expert_agent,I got a fraud score of 0.94,"**1. Why This Transaction Received This Fraud Score**  
+The transaction scored a **94.0% fraud probability** due to a convergence of strong signals across multiple feature dimensions. The XGBoost mode",38736
+2026-05-06 15:36:50,rag_agent,What are SEBI regulations,"SEBI regulations refer to the rules and guidelines established by the Securities and Exchange Board of India (SEBI) to govern various aspects of financial markets, including the operations of Alternat",10465
+2026-05-06 09:35:48,fraud_expert_agent,Explain why transaction TX-94821 was flagged as fraud,"<think>
+
+Okay, let's tackle this fraud detection explanation. The user wants a detailed breakdown of why TX-94821 has a high fraud score. I need to start by understanding the components involved here.",38076
+2026-05-05 14:50:49,sql_agent,What was the average fraud score last week?,Based on the transactions database: 0 transactions have been scored. Average fraud score: N/A. [Phase 4 upgrade: SQL Agent will generate dynamic queries for any question.],1
+2026-05-05 14:50:47,sql_agent,What was the average fraud score last week?,Based on the transactions database: 0 transactions have been scored. Average fraud score: N/A. [Phase 4 upgrade: SQL Agent will generate dynamic queries for any question.],4

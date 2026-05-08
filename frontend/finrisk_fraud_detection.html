@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fraud Detection | FinRisk AI Platform</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <div class="logo-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        </div>
+        <span class="logo-name">FinRisk AI</span>
+      </button>
+    </div>
+    <div class="context">Fraud Engine</div>
+    <div class="topbar-right">
+      <div class="status-dot">
+        <div class="dot"></div>
+        Operational
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Navigation</div>
+      <a href="finrisk_kpi_dashboard.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="sidebar-item-text">Overview</span>
+      </a>
+      <a href="finrisk_fraud_detection.html" class="sidebar-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span class="sidebar-item-text">Fraud Detection</span>
+      </a>
+      <a href="finrisk_portfolio_forecast.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="sidebar-item-text">Portfolio</span>
+      </a>
+      <a href="finrisk_regulatory_search.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="sidebar-item-text">Regulatory</span>
+      </a>
+      <a href="finrisk_ai_agents.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sidebar-item-text">AI Agents</span>
+      </a>
+            <a href="finrisk_reports.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="sidebar-item-text">Reports</span>
+      </a>
+      <a href="finrisk_model_outputs.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="sidebar-item-text">Model Outputs</span>
+      </a>
+    </div>
+
+    <div class="main">
+      <h1 class="page-title">Fraud Detection Scoring</h1>
+
+      <div class="grid-1-16">
+        <!-- Left Column -->
+        <div class="flex-col">
+          <!-- Score Form -->
+          <div class="card">
+            <h3 class="mb-4 weight-500">Check Transaction Safety</h3>
+            
+            <div class="mb-2">
+              <label class="kpi-label mb-2" style="display:block;">Transaction ID</label>
+              <input type="text" id="tx_id" class="input-field" value="TX-94821" readonly style="opacity: 0.7;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 12px;" class="mb-4">
+              <div>
+                <label class="kpi-label mb-2" style="display:block;">Amount (₹)</label>
+                <input type="number" id="amount" class="input-field" value="2400.50">
+              </div>
+              <div>
+                <label class="kpi-label mb-2" style="display:block;">Time of Day</label>
+                <select id="time_of_day" class="input-field">
+                  <option value="morning">Morning (6 AM - 12 PM)</option>
+                  <option value="afternoon">Afternoon (12 PM - 6 PM)</option>
+                  <option value="evening">Evening (6 PM - 12 AM)</option>
+                  <option value="late_night" selected>Late Night (12 AM - 6 AM)</option>
+                </select>
+              </div>
+              <div>
+                <label class="kpi-label mb-2" style="display:block;">Merchant Category</label>
+                <select id="merchant" class="input-field">
+                  <option value="grocery">Local Grocery / Supermarket</option>
+                  <option value="online">Standard Online Shopping</option>
+                  <option value="electronics">High-End Electronics</option>
+                  <option value="foreign" selected>Foreign / Unrecognized Merchant</option>
+                </select>
+              </div>
+              <div>
+                <label class="kpi-label mb-2" style="display:block;">Recent Account Activity</label>
+                <select id="activity" class="input-field">
+                  <option value="normal">Normal spending</option>
+                  <option value="high" selected>Unusually high spending today</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex-row mb-4" style="gap: 8px;">
+              <button class="btn" onclick="fillSample('fraud')" style="flex: 1; justify-content: center; font-size: 11px; background-color: rgba(226, 75, 74, 0.1); color: var(--danger-red); border-color: transparent;">Simulate Suspicious</button>
+              <button class="btn" onclick="fillSample('safe')" style="flex: 1; justify-content: center; font-size: 11px; background-color: rgba(29, 158, 117, 0.1); color: var(--brand-green); border-color: transparent;">Simulate Normal</button>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="handleScore()">
+              Check Transaction Safety ↗
+            </button>
+            <button class="btn" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="askAI()">
+              Ask AI Agent for Explanation ↗
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="flex-col">
+          <!-- Prediction Result -->
+          <div class="card flex-col" style="align-items: center; padding: 40px 20px;">
+            <div id="score-display" style="font-size: 48px; font-weight: 500; color: var(--danger-red); line-height: 1;">0.94</div>
+            <div class="muted mb-4" style="font-size: 13px;">Fraud probability</div>
+            <span id="risk-display" class="badge badge-pill badge-high mb-4">HIGH RISK</span>
+            
+            <div style="width: 100%; max-width: 400px; margin-top: 20px;">
+              <div class="gradient-track">
+                <!-- 88% visually maps to a score of 0.94 in some arbitrary scale, but let's place the needle at 88% -->
+                <div id="needle-display" class="needle" style="left: 88%;"></div>
+              </div>
+              <div class="flex-row" style="justify-content: space-between; font-size: 11px; color: var(--color-text-secondary);">
+                <span>Safe</span>
+                <span>Review</span>
+                <span>Block</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Predictions Table -->
+          <div class="card">
+            <h3 class="mb-4 weight-500">Recent Predictions</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>TX ID</th>
+                  <th>Amount</th>
+                  <th>Score</th>
+                  <th>Risk</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody id="recent-predictions-body">
+                <tr>
+                  <td>TX-94821</td>
+                  <td>₹2,400.50</td>
+                  <td style="color: var(--danger-red); font-weight: 500;">0.94</td>
+                  <td><span class="badge badge-pill badge-high">HIGH</span></td>
+                  <td class="muted">03:15 AM</td>
+                </tr>
+                <tr>
+                  <td>TX-94820</td>
+                  <td>₹120.00</td>
+                  <td style="color: var(--brand-green); font-weight: 500;">0.02</td>
+                  <td><span class="badge badge-pill badge-low">LOW</span></td>
+                  <td class="muted">03:12 AM</td>
+                </tr>
+                <tr>
+                  <td>TX-94819</td>
+                  <td>₹45.50</td>
+                  <td style="color: var(--brand-green); font-weight: 500;">0.01</td>
+                  <td><span class="badge badge-pill badge-low">LOW</span></td>
+                  <td class="muted">03:08 AM</td>
+                </tr>
+                <tr>
+                  <td>TX-94808</td>
+                  <td>₹1,150.00</td>
+                  <td style="color: var(--amber); font-weight: 500;">0.68</td>
+                  <td><span class="badge badge-pill badge-med">MED</span></td>
+                  <td class="muted">02:40 AM</td>
+                </tr>
+                <tr>
+                  <td>TX-94807</td>
+                  <td>₹890.25</td>
+                  <td style="color: var(--brand-green); font-weight: 500;">0.14</td>
+                  <td><span class="badge badge-pill badge-low">LOW</span></td>
+                  <td class="muted">02:35 AM</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    function fillSample(type) {
+      if(type === 'fraud') {
+        document.getElementById('tx_id').value = 'TX-94821';
+        document.getElementById('amount').value = '2400.50';
+        document.getElementById('time_of_day').value = 'late_night';
+        document.getElementById('merchant').value = 'foreign';
+        document.getElementById('activity').value = 'high';
+      } else {
+        document.getElementById('tx_id').value = 'TX-94822';
+        document.getElementById('amount').value = '120.00';
+        document.getElementById('time_of_day').value = 'afternoon';
+        document.getElementById('merchant').value = 'grocery';
+        document.getElementById('activity').value = 'normal';
+      }
+    }
+
+    async function handleScore() {
+      const btn = document.querySelector('button[onclick="handleScore()"]');
+      const origText = btn.innerText;
+      btn.innerText = "Checking...";
+      
+      const timeOfDay = document.getElementById('time_of_day').value;
+      const merchant = document.getElementById('merchant').value;
+      const activity = document.getElementById('activity').value;
+      
+      // ML feature translation
+      let hour_val = 14;
+      if (timeOfDay === 'morning') hour_val = 9;
+      if (timeOfDay === 'evening') hour_val = 19;
+      if (timeOfDay === 'late_night') hour_val = 3;
+
+      let v1_val = 0.1, v2_val = 0.2, v3_val = 0, v4_val = 0, v10_val = 0, v12_val = 0, v14_val = 0, v17_val = 0;
+      if (merchant === 'electronics') { v1_val = -1.2; v2_val = 1.5; v14_val = -2.0; }
+      if (merchant === 'foreign') { 
+        v1_val = -3.2; v2_val = 2.8; 
+        v3_val = -10; v4_val = 10; v10_val = -10; v12_val = -10; v14_val = -10; v17_val = -10;
+      }
+      
+      let amount_z = 0.4, vel_24 = 650.0;
+      if (activity === 'high') { amount_z = 4.1; vel_24 = 8200.0; }
+
+      const features = {
+        tx_id: document.getElementById('tx_id').value,
+        amount_log: Math.log(parseFloat(document.getElementById('amount').value) || 1),
+        hour_of_day: hour_val,
+        amount_zscore: amount_z,
+        velocity_24tx: vel_24,
+        V1: v1_val,
+        V2: v2_val,
+        V3: v3_val, V4: v4_val, V5: 0, V6: 0, V7: 0, V8: 0, V9: 0, V10: v10_val,
+        V11: 0, V12: v12_val, V13: 0, V14: v14_val, V15: 0, V16: 0, V17: v17_val, V18: 0, V19: 0, V20: 0,
+        V21: 0, V22: 0, V23: 0, V24: 0, V25: 0, V26: 0, V27: 0, V28: 0
+      };
+
+      try {
+        const result = await predictFraud(features);
+        if(result && result.fraud_score !== undefined) {
+          document.getElementById('score-display').innerText = result.fraud_score;
+          document.getElementById('risk-display').innerText = result.risk_level + " RISK";
+          
+          let riskClass = 'badge-low';
+          let riskColor = 'var(--brand-green)';
+          if (result.risk_level === 'HIGH') { riskClass = 'badge-high'; riskColor = 'var(--danger-red)'; }
+          else if (result.risk_level === 'MEDIUM') { riskClass = 'badge-med'; riskColor = 'var(--amber)'; }
+          
+          document.getElementById('risk-display').className = "badge badge-pill " + riskClass;
+          document.getElementById('needle-display').style.left = (result.fraud_score * 100) + '%';
+          
+          // Add to recent predictions table
+          const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          const amtStr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(parseFloat(document.getElementById('amount').value) || 0);
+          
+          const tbody = document.getElementById('recent-predictions-body');
+          const newRow = `
+            <tr>
+              <td>${features.tx_id}</td>
+              <td>${amtStr}</td>
+              <td style="color: ${riskColor}; font-weight: 500;">${result.fraud_score}</td>
+              <td><span class="badge badge-pill ${riskClass}">${result.risk_level}</span></td>
+              <td class="muted">${timeStr}</td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML('afterbegin', newRow);
+          
+          // Generate new transaction ID for the next check
+          document.getElementById('tx_id').value = 'TX-' + Math.floor(10000 + Math.random() * 90000);
+        } else {
+          alert("Failed to score transaction.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error calling backend.");
+      } finally {
+        btn.innerText = origText;
+      }
+    }
+    
+    async function askAI() {
+      const tx_id = document.getElementById('tx_id').value;
+      const score = document.getElementById('score-display').innerText;
+      const query = "Explain why transaction " + tx_id + " was flagged as high risk with a score of " + score + ".";
+      
+      const origText = document.querySelector('button[onclick="askAI()"]').innerText;
+      document.querySelector('button[onclick="askAI()"]').innerText = "Asking...";
+      
+      const result = await sendPrompt(query);
+      alert("AI Response:\\n\\n" + result.answer);
+      document.querySelector('button[onclick="askAI()"]').innerText = origText;
+    }
+  </script>
+</body>
+</html>

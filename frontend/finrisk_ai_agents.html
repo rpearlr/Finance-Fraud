@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agents | FinRisk AI Platform</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .chat-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .right-panel {
+      width: 210px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .chat-input-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    
+    .tag-sql { background-color: #E6F1FB; color: #0C447C; }
+    .tag-rag { background-color: #EEEDFE; color: #3C3489; }
+    .tag-ml { background-color: rgba(29, 158, 117, 0.15); color: var(--brand-green); }
+    .tag-inv { background-color: rgba(239, 159, 39, 0.15); color: var(--amber); }
+    .tag-orch { background-color: var(--color-background-secondary); color: var(--color-text-secondary); }
+    
+    .suggestion {
+      padding: 8px 12px;
+      background-color: var(--color-background-secondary);
+      border-radius: var(--border-radius-md);
+      font-size: 11px;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      margin-bottom: 8px;
+      border: 0.5px solid transparent;
+      transition: all 0.2s;
+    }
+    .suggestion:hover {
+      border-color: var(--color-border-secondary);
+      background-color: var(--color-background-primary);
+    }
+    
+    /* Extra scrollable area for chat */
+    .chat-wrapper {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <div class="logo-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        </div>
+        <span class="logo-name">FinRisk AI</span>
+      </button>
+    </div>
+    <div class="context">Multi-Agent System</div>
+    <div class="topbar-right">
+      <div class="status-dot">
+        <div class="dot"></div>
+        Operational
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Navigation</div>
+      <a href="finrisk_kpi_dashboard.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="sidebar-item-text">Overview</span>
+      </a>
+      <a href="finrisk_fraud_detection.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span class="sidebar-item-text">Fraud Detection</span>
+      </a>
+      <a href="finrisk_portfolio_forecast.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="sidebar-item-text">Portfolio</span>
+      </a>
+      <a href="finrisk_regulatory_search.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="sidebar-item-text">Regulatory</span>
+      </a>
+      <a href="finrisk_ai_agents.html" class="sidebar-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sidebar-item-text">AI Agents</span>
+      </a>
+            <a href="finrisk_reports.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="sidebar-item-text">Reports</span>
+      </a>
+      <a href="finrisk_model_outputs.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="sidebar-item-text">Model Outputs</span>
+      </a>
+    </div>
+
+    <div class="main">
+      <div style="display: flex; gap: 24px; height: 100%;">
+        
+        <!-- Left: Chat Panel -->
+        <div class="chat-panel">
+          <div>
+            <h1 class="page-title" style="margin-bottom: 4px;">AI Assistants</h1>
+            <div class="muted mb-4" style="font-size: 12px;">Dedicated specialist agents for different use cases.</div>
+            
+            <!-- Tabs -->
+            <div style="display: flex; gap: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--color-border-secondary); padding-bottom: 8px;">
+              <div id="tab-fraud" class="tab-item" style="cursor: pointer; font-weight: 500; font-size: 14px; padding-bottom: 6px; border-bottom: 2px solid var(--brand-green); color: var(--brand-green);" onclick="switchTab('fraud_expert_agent')">Fraud Expert</div>
+              <div id="tab-invest" class="tab-item" style="cursor: pointer; font-weight: 500; font-size: 14px; padding-bottom: 6px; border-bottom: 2px solid transparent; color: var(--color-text-secondary);" onclick="switchTab('investment_agent')">Investment Advisor</div>
+            </div>
+          </div>
+          
+          <div class="card chat-wrapper" style="display: flex; flex-direction: column;">
+            <div class="chat-window" id="chatWindow">
+               <!-- Messages will appear here -->
+            </div>
+          </div>
+          
+          <!-- Input -->
+          <div class="chat-input-row">
+            <input type="text" class="input-field" id="chatInput" placeholder="Ask a question..." style="font-size: 14px; padding: 12px 16px;">
+            <button class="btn btn-primary" style="padding: 0 24px; font-size: 14px;" onclick="handleChat()">Send ↗</button>
+          </div>
+        </div>
+
+        <!-- Right: Panel -->
+        <div class="right-panel">
+          <div class="card" style="flex: 1;">
+            <h3 class="weight-500 mb-4" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">Suggested Queries</h3>
+            <div id="suggestions-fraud">
+              <div class="suggestion" onclick="suggest('Why did TX-94821 score 0.94?')">Why did TX-94821 score 0.94?</div>
+              <div class="suggestion" onclick="suggest('Explain how amount_zscore impacts the model.')">Explain how amount_zscore impacts the model.</div>
+            </div>
+            <div id="suggestions-invest" style="display: none;">
+              <div class="suggestion" onclick="suggest('What is a good asset allocation for a moderate risk profile?')">What is a good asset allocation for a moderate risk profile?</div>
+              <div class="suggestion" onclick="suggest('How should I adjust my portfolio for high inflation?')">How should I adjust my portfolio for high inflation?</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    let currentAgentContext = 'fraud_expert_agent';
+
+    function switchTab(agent) {
+      currentAgentContext = agent;
+      document.getElementById('chatWindow').innerHTML = '';
+      
+      const tabFraud = document.getElementById('tab-fraud');
+      const tabInvest = document.getElementById('tab-invest');
+      const suggFraud = document.getElementById('suggestions-fraud');
+      const suggInvest = document.getElementById('suggestions-invest');
+      
+      if (agent === 'fraud_expert_agent') {
+        tabFraud.style.borderBottom = "2px solid var(--brand-green)";
+        tabFraud.style.color = "var(--brand-green)";
+        tabInvest.style.borderBottom = "2px solid transparent";
+        tabInvest.style.color = "var(--color-text-secondary)";
+        suggFraud.style.display = "block";
+        suggInvest.style.display = "none";
+      } else {
+        tabInvest.style.borderBottom = "2px solid var(--amber)";
+        tabInvest.style.color = "var(--amber)";
+        tabFraud.style.borderBottom = "2px solid transparent";
+        tabFraud.style.color = "var(--color-text-secondary)";
+        suggFraud.style.display = "none";
+        suggInvest.style.display = "block";
+      }
+    }
+
+    function escapeHtml(unsafe) {
+      if (!unsafe) return "";
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    async function handleChat() {
+      const input = document.getElementById('chatInput');
+      const q = input.value;
+      if(!q) return;
+      
+      const chatWindow = document.getElementById('chatWindow');
+      
+      // Append User Message
+      const userMsgHtml = `
+      <div class="msg user" style="margin-top: 16px;">
+        <div class="avatar avatar-u">U</div>
+        <div class="bubble">${q}</div>
+      </div>`;
+      chatWindow.insertAdjacentHTML('beforeend', userMsgHtml);
+      
+      input.value = '';
+      
+      // Scroll to bottom
+      const wrapper = document.querySelector('.chat-wrapper');
+      wrapper.scrollTop = wrapper.scrollHeight;
+      
+      // Temporary loading message
+      const loadingId = 'loading-' + Date.now();
+      const loadingMsgHtml = `
+      <div id="${loadingId}" class="msg bot" style="margin-top: 16px;">
+        <div class="avatar avatar-ai">AI</div>
+        <div>
+          <div class="bubble" style="opacity: 0.7;">Thinking...</div>
+        </div>
+      </div>`;
+      chatWindow.insertAdjacentHTML('beforeend', loadingMsgHtml);
+      wrapper.scrollTop = wrapper.scrollHeight;
+
+      try {
+        const result = await sendPrompt(q, currentAgentContext);
+        
+        let tagClass = 'tag-orch';
+        let tagName = 'Orchestrator Agent';
+        if (result.agent_used === 'sql_agent') { tagClass = 'tag-sql'; tagName = 'SQL Data Analyst'; }
+        if (result.agent_used === 'rag_agent') { tagClass = 'tag-rag'; tagName = 'Regulatory RAG Agent'; }
+        if (result.agent_used === 'fraud_expert_agent') { tagClass = 'tag-ml'; tagName = 'ML Expert Agent'; }
+        if (result.agent_used === 'investment_agent') { tagClass = 'tag-inv'; tagName = 'Investment Advisor'; }
+
+        // Remove loading
+        document.getElementById(loadingId).remove();
+        
+        // Append Bot Message
+        const botMsgHtml = `
+        <div class="msg bot" style="margin-top: 16px;">
+          <div class="avatar avatar-ai">AI</div>
+          <div>
+            <span class="agent-tag ${tagClass}">${tagName}</span>
+            <div class="bubble">${escapeHtml(result.answer).replace(/\\n/g, '<br>').replace(/\n/g, '<br>')}</div>
+            <span class="latency">${result.latency_ms}ms &middot; Answered by ${result.agent_used}</span>
+          </div>
+        </div>`;
+        chatWindow.insertAdjacentHTML('beforeend', botMsgHtml);
+        wrapper.scrollTop = wrapper.scrollHeight;
+        
+      } catch (err) {
+        console.error(err);
+        const loadingEl = document.getElementById(loadingId);
+        if (loadingEl) loadingEl.remove();
+        alert("Failed to get response from AI agent. Check console.");
+      }
+    }
+    
+    function suggest(q) {
+      document.getElementById('chatInput').value = q;
+    }
+    
+    // Add enter key support
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('chatInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') handleChat();
+      });
+    });
+  </script>
+</body>
+</html>

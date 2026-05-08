@@ -1,0 +1,11 @@
+.env
+.env.azure
+.venv/
+__pycache__/
+data/raw/
+data/rag_cache/
+*.pyc
+.git/
+tests/
+ml/reports/
+notebooks/

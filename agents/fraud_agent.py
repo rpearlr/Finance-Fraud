@@ -32,8 +32,8 @@ log = logging.getLogger("fraud_agent")
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 FOUNDRY_ENDPOINT   = 'https://finrisk-foundry.services.ai.azure.com/openai/v1'
-FOUNDRY_API_KEY    = 'Awmymt5etdIKWnnILIy4F41W5MtntC1z3nYB7l8SmzW8NVWUvQJlJQQJ99CEACNns7RXJ3w3AAAAACOGGmzQ'
-PHI4_DEPLOYMENT    = "Phi-4-mini-reasoning"
+FOUNDRY_API_KEY    = os.getenv("FOUNDRY_KEY")
+PHI4_DEPLOYMENT    = "Phi-4"
 
 MODEL_PATH         = Path(r"C:\Users\User\Desktop\fin-prj\ml\models\fraud_model.pkl")
 FEATURES_PATH      = Path(r"C:\Users\User\Desktop\fin-prj\ml\models\feature_names.txt")
@@ -141,22 +141,13 @@ def get_risk_level(score: float) -> tuple[str, str, str]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 SYSTEM_PROMPT = """You are a fraud investigation expert at a major Indian financial institution.
-You explain machine learning fraud detection decisions to compliance officers and investigators.
+You explain machine learning fraud detection decisions to compliance officers.
 
-Your explanations must be:
-- Grounded in the specific feature values provided (never invent numbers)
-- Written in plain English, avoiding jargon
-- Structured with a clear verdict, reasoning, and recommended action
-- Concise — investigators are busy, 150-200 words maximum
-
-You have deep knowledge of:
-- Credit card fraud patterns (velocity attacks, geographic anomalies, night-time fraud)
-- PCA-transformed behavioural features from card transaction data
-- Indian financial market context (INR amounts, merchant categories, RBI guidelines)
-- XGBoost model behaviour and feature importance
-
-Think step by step before writing your final explanation.
-Use <think>...</think> tags for your reasoning, then write the final explanation after.
+Rules:
+- Final explanation: 80-120 words MAXIMUM. Investigators are busy.
+- Reference the actual feature values given (never invent numbers).
+- Structure: one-sentence verdict → 2-3 bullet reasons → one recommended action.
+- Plain English, no jargon.
 """
 
 def build_prompt(
@@ -237,27 +228,16 @@ def call_phi4(system_prompt: str, user_prompt: str) -> tuple[str, str]:
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_prompt},
         ],
-        max_tokens=1024,
-        temperature=0.3,    # low temp for consistent, factual explanations
+        max_tokens=500,      # strict cap — forces short CoT + short answer
+        temperature=0.4,     # slightly higher = less deliberate (faster) CoT
     )
 
-    full_response = response.choices[0].message.content or ""
+    explanation = (response.choices[0].message.content or "").strip()
 
-    # Extract <think>...</think> reasoning block if present
-    thinking    = ""
-    explanation = full_response
-
-    if "<think>" in full_response and "</think>" in full_response:
-        think_start = full_response.index("<think>") + len("<think>")
-        think_end   = full_response.index("</think>")
-        thinking    = full_response[think_start:think_end].strip()
-        explanation = full_response[think_end + len("</think>"):].strip()
-
-    log.info(f"Phi-4 response — {len(full_response)} chars, "
-             f"thinking={'yes' if thinking else 'no'}, "
+    log.info(f"Phi-4 response — {len(explanation)} chars, "
              f"tokens={response.usage.total_tokens if response.usage else 'N/A'}")
 
-    return thinking, explanation, response.usage.total_tokens if response.usage else 0
+    return "", explanation, response.usage.total_tokens if response.usage else 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════

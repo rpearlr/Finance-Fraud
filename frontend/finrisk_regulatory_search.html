@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regulatory Search | FinRisk AI Platform</title>
+  <link rel="stylesheet" href="index.css">
+  <style>
+    .search-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .search-row .input-field {
+      flex: 1;
+      font-size: 14px;
+      padding: 12px 16px;
+    }
+    .search-row .btn {
+      padding: 0 24px;
+      font-size: 14px;
+    }
+    
+    .filter-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+    .chip {
+      padding: 4px 12px;
+      border-radius: var(--border-radius-pill);
+      font-size: 11px;
+      background-color: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-secondary);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+    }
+    .chip.active {
+      background-color: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      font-weight: 500;
+      border-color: var(--color-border-tertiary);
+    }
+    
+    .result-card {
+      padding: 16px;
+      background-color: var(--color-background-primary);
+      border: 0.5px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .result-card:hover {
+      background-color: var(--color-background-secondary);
+    }
+    .result-card.selected {
+      border: 1.5px solid var(--brand-green);
+      background-color: var(--color-background-primary);
+    }
+    
+    .score-pill {
+      background-color: #E1F5EE;
+      color: #085041;
+      border-radius: var(--border-radius-pill);
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 500;
+    }
+    
+    .sticky-panel {
+      position: sticky;
+      top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <div class="logo-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        </div>
+        <span class="logo-name">FinRisk AI</span>
+      </button>
+    </div>
+    <div class="context">Compliance & Regulatory</div>
+    <div class="topbar-right">
+      <div class="status-dot">
+        <div class="dot"></div>
+        Operational
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Navigation</div>
+      <a href="finrisk_kpi_dashboard.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="sidebar-item-text">Overview</span>
+      </a>
+      <a href="finrisk_fraud_detection.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span class="sidebar-item-text">Fraud Detection</span>
+      </a>
+      <a href="finrisk_portfolio_forecast.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="sidebar-item-text">Portfolio</span>
+      </a>
+      <a href="finrisk_regulatory_search.html" class="sidebar-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="sidebar-item-text">Regulatory</span>
+      </a>
+      <a href="finrisk_ai_agents.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sidebar-item-text">AI Agents</span>
+      </a>
+            <a href="finrisk_reports.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="sidebar-item-text">Reports</span>
+      </a>
+      <a href="finrisk_model_outputs.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="sidebar-item-text">Model Outputs</span>
+      </a>
+    </div>
+
+    <div class="main">
+      
+      <div class="search-row">
+        <input type="text" class="input-field" id="searchInput" value="SEBI AIF Category II disclosure requirements">
+        <button class="btn btn-primary" onclick="doSearch()">Search ↗</button>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+        
+        <!-- Left: Static Documents List -->
+        <div>
+          <h3 class="section-title">Indexed Knowledge Base</h3>
+          
+          <div class="result-card">
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
+              <div class="weight-500" style="font-size: 14px;">Basel III Framework</div>
+              <span class="badge tag-basel">Basel</span>
+            </div>
+            <div class="muted" style="font-size: 12px; line-height: 1.5;">
+              Filename: basel3_framework.pdf
+            </div>
+          </div>
+          
+          <div class="result-card">
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
+              <div class="weight-500" style="font-size: 14px;">FEMA Notification 396</div>
+              <span class="badge tag-fema">FEMA</span>
+            </div>
+            <div class="muted" style="font-size: 12px; line-height: 1.5;">
+              Filename: fema_notification_396.pdf
+            </div>
+          </div>
+          
+          <div class="result-card">
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
+              <div class="weight-500" style="font-size: 14px;">RBI KYC Master Directions</div>
+              <span class="badge tag-rbi">RBI</span>
+            </div>
+            <div class="muted" style="font-size: 12px; line-height: 1.5;">
+              Filename: rbi_kyc_master_directions.pdf
+            </div>
+          </div>
+          
+          <div class="result-card">
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
+              <div class="weight-500" style="font-size: 14px;">SEBI AIF Regulation</div>
+              <span class="badge tag-sebi">SEBI</span>
+            </div>
+            <div class="muted" style="font-size: 12px; line-height: 1.5;">
+              Filename: sebi_aif_regulation.pdf
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Answer Panel -->
+        <div>
+          <h3 class="section-title">AI Agent Response</h3>
+          <div class="card sticky-panel" id="answerPanel" style="min-height: 300px; display: flex; flex-direction: column;">
+            <!-- Default blank state -->
+            <div id="answerPlaceholder" class="muted" style="text-align: center; margin: auto; font-size: 13px;">
+              Enter a query to search the regulatory knowledge base.
+            </div>
+            
+            <!-- Loading state -->
+            <div id="answerLoading" style="display: none; text-align: center; margin: auto;">
+              <div class="status-dot" style="justify-content: center; border: none; background: transparent;">
+                <div class="dot"></div>
+                <span class="muted" style="font-size: 13px;">Generating Answer...</span>
+              </div>
+            </div>
+            
+            <!-- Final Answer -->
+            <div id="answerContent" style="display: none; font-size: 13.5px; line-height: 1.6; color: var(--color-text);">
+            </div>
+          </div>
+        </div>
+        
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function doSearch() {
+      const q = document.getElementById('searchInput').value;
+      if (!q.trim()) return;
+      
+      const btn = document.querySelector('button[onclick="doSearch()"]');
+      const origText = btn.innerText;
+      btn.innerText = "Searching...";
+      btn.disabled = true;
+      
+      const placeholder = document.getElementById('answerPlaceholder');
+      const loading = document.getElementById('answerLoading');
+      const content = document.getElementById('answerContent');
+      
+      placeholder.style.display = "none";
+      content.style.display = "none";
+      loading.style.display = "flex";
+      
+      try {
+        const result = await sendPrompt(q, "rag_agent");
+        loading.style.display = "none";
+        content.style.display = "block";
+        
+        if(result && result.answer) {
+          // simple markdown bold and newline parsing for display
+          let formatted = result.answer.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+          formatted = formatted.replace(/\n/g, "<br>");
+          content.innerHTML = formatted;
+        } else {
+          content.innerHTML = "<span class='muted'>No valid answer returned from agent.</span>";
+        }
+      } catch (err) {
+        loading.style.display = "none";
+        content.style.display = "block";
+        content.innerHTML = "<span class='muted' style='color: var(--danger)'>Error contacting RAG agent. Please check console.</span>";
+        console.error(err);
+      } finally {
+        btn.innerText = origText;
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

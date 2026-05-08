@@ -145,10 +145,7 @@ def chunk_text(text: str, source_name: str, source_type: str) -> list[dict]:
     Split text into overlapping chunks with metadata.
     Each chunk dict contains content + source info used for retrieval and citation.
     """
-    try:
-        from langchain_text_splitters import RecursiveCharacterTextSplitter
-    except ImportError:
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
@@ -187,21 +184,33 @@ def chunk_text(text: str, source_name: str, source_type: str) -> list[dict]:
 # STAGE 3 — EMBEDDING (HuggingFace, free, local)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def get_embeddings(texts: list[str]) -> list[list[float]]:
+def warmup_embed_model() -> None:
     """
-    Embed texts using HuggingFace all-MiniLM-L6-v2.
-    - Completely free, runs locally, no API key needed
-    - Downloads ~90MB on first run, cached by sentence-transformers after that
-    - Output: 384-dimensional vectors
-    - Batch size 64 — no rate limits since it's local
+    Pre-load the SentenceTransformer into memory.
+    Call this once at application startup so the first user query is fast.
     """
     from sentence_transformers import SentenceTransformer
 
     global _embed_model
     if _embed_model is None:
-        log.info("  Loading HuggingFace embedding model (downloads ~90MB on first run)...")
+        log.info("  Loading HuggingFace embedding model (all-MiniLM-L6-v2)...")
         _embed_model = SentenceTransformer("all-MiniLM-L6-v2")
-        log.info(f"  Model loaded — output dim: {_embed_model.get_sentence_embedding_dimension()}")
+        log.info(f"  Embedding model ready — dim={_embed_model.get_sentence_embedding_dimension()}")
+    else:
+        log.info("  Embedding model already in memory — skipping load")
+
+
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    """
+    Embed texts using HuggingFace all-MiniLM-L6-v2.
+    - Completely free, runs locally, no API key needed
+    - Downloads ~90MB on first run, cached by sentence-transformers after that
+    - Output: 384-dimensional L2-normalised vectors
+    - Batch size 64 — no rate limits since it's local
+    """
+    global _embed_model
+    if _embed_model is None:
+        warmup_embed_model()  # fallback if called before startup hook
 
     all_embeddings = []
     batch_size     = 64
@@ -212,7 +221,14 @@ def get_embeddings(texts: list[str]) -> list[list[float]]:
             f"  Embedding batch {i//batch_size + 1}/"
             f"{(len(texts) - 1)//batch_size + 1} ({len(batch)} chunks)..."
         )
-        embeddings = _embed_model.encode(batch, show_progress_bar=False)
+        # normalize_embeddings=True fuses L2 normalisation into the encode pass
+        # so we don't need a separate faiss.normalize_L2() call on the result
+        embeddings = _embed_model.encode(
+            batch,
+            show_progress_bar=False,
+            normalize_embeddings=True,
+            convert_to_numpy=True,
+        )
         all_embeddings.extend(embeddings.tolist())
 
     log.info(f"  Generated {len(all_embeddings)} embeddings (dim={len(all_embeddings[0])})")
@@ -236,6 +252,7 @@ def upload_chunks_to_search(chunks: list[dict], embeddings: list[list[float]]) -
     """
     Add chunks + their embeddings to the FAISS index, then persist to disk.
     Safe to call multiple times per indexing run — appends to the current index.
+    Embeddings are expected to already be L2-normalised (done by get_embeddings).
     """
     import faiss
     import numpy as np
@@ -243,7 +260,8 @@ def upload_chunks_to_search(chunks: list[dict], embeddings: list[list[float]]) -
     global _faiss_index, _faiss_chunks
 
     vectors = np.array(embeddings, dtype="float32")
-    faiss.normalize_L2(vectors)   # normalize so dot product = cosine similarity
+    # Vectors are already L2-normalised by get_embeddings(normalize_embeddings=True)
+    # so inner product == cosine similarity without an extra normalisation step.
 
     if _faiss_index is None:
         init_faiss_index(dim=vectors.shape[1])
@@ -307,9 +325,9 @@ def retrieve_chunks(query: str, source_filter: Optional[str] = None) -> list[dic
         )
 
     # Embed query with the same model used during indexing
+    # Vectors come out L2-normalised from get_embeddings(), no extra step needed
     query_embedding = get_embeddings([query])[0]
     vector = np.array([query_embedding], dtype="float32")
-    faiss.normalize_L2(vector)
 
     # Fetch extra results when filtering so we still get TOP_K after filter
     k = min(TOP_K * 3 if source_filter else TOP_K, _faiss_index.ntotal)
@@ -399,7 +417,7 @@ def generate_answer(query: str, chunks: list[dict]) -> dict:
 
     client = AzureOpenAI(
         azure_endpoint="https://koreacentral.api.cognitive.microsoft.com/",
-        api_key='8F67CX0odtnhtdoDHth9GFDiBlDi35oME59cnWzuSfisD1b4hdigJQQJ99CEACNns7RXJ3w3AAABACOGKRUJ',
+        api_key=os.getenv("AZURE_OPENAI_KEY"),
         api_version="2024-12-01-preview"
     )
 
@@ -468,6 +486,9 @@ class DocumentAssistantAgent:
             latency_ms   : int  — total pipeline time in milliseconds
             agent        : str  — always "rag_agent"
         """
+        if not self._ready:
+            self._ready = self._check_ready()
+
         if not self._ready:
             return {
                 "answer"     : "RAG Agent not ready. Run: python agents/rag_pipeline.py index",

@@ -1,13 +1,3 @@
-"""
-Phase 2 — Fraud Classifier Training
-Run from project root: python ml/train_fraud_classifier.py
-
-Outputs:
-  ml/models/fraud_model.pkl        — pickled XGBoost model
-  ml/models/fraud_model.onnx       — ONNX export for Azure ML later
-  ml/models/feature_names.txt      — ordered feature list FastAPI will use
-  ml/reports/evaluation_report.txt — AUC, precision, recall, F1, confusion matrix
-"""
 
 import pandas as pd
 import numpy as np
