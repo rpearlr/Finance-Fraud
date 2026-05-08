@@ -1,0 +1,24 @@
+import os
+import logging
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# ── Logging ────────────────────────────────────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)s  %(name)s  %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger("finrisk")
+
+# ── Paths ──────────────────────────────────────────────────────────────────────
+BASE_DIR      = Path(__file__).resolve().parent.parent
+MODEL_PATH    = BASE_DIR / "ml" / "models" / "fraud_model.pkl"
+FEATURES_PATH = BASE_DIR / "ml" / "models" / "feature_names.txt"
+FORECAST_PATH = BASE_DIR / "data" / "staged" / "portfolio_forecast.csv"
+
+# ── SQLite ─────────────────────────────────────────────────────────────────────
+SQLITE_PATH = os.getenv("SQLITE_PATH", str(BASE_DIR / "finrisk.db"))
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
