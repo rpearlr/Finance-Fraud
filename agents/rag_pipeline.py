@@ -26,6 +26,9 @@ import hashlib
 import pickle
 from pathlib import Path
 from typing import Optional
+from langchain_openai import AzureChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -52,7 +55,7 @@ TOP_K         = 4     # chunks to retrieve per query
 # Azure OpenAI — only used for answer generation (gpt-4o-mini)
 AZURE_OPENAI_ENDPOINT    = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_KEY         = os.getenv("AZURE_OPENAI_KEY")
-AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-08-06")
+AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
 CHAT_DEPLOYMENT          = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o-mini")
 
 # Azure Document Intelligence — optional, falls back to pypdf if not set
@@ -380,8 +383,6 @@ def generate_answer(query: str, chunks: list[dict]) -> dict:
     Only this function uses Azure — everything before it is free and local.
     Degrades gracefully if Azure OpenAI is not configured.
     """
-    from openai import AzureOpenAI
-
     if not chunks:
         return {
             "answer"     : "No relevant regulatory documents found for this query. "
@@ -415,23 +416,23 @@ def generate_answer(query: str, chunks: list[dict]) -> dict:
         f"Regulatory excerpts:\n{context}"
     )
 
-    client = AzureOpenAI(
-        azure_endpoint="https://koreacentral.api.cognitive.microsoft.com/",
-        api_key=os.getenv("AZURE_OPENAI_KEY"),
-        api_version="2024-12-01-preview"
-    )
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": user_message},
-        ],
+    llm = AzureChatOpenAI(
+        azure_endpoint=AZURE_OPENAI_ENDPOINT,
+        api_key=AZURE_OPENAI_KEY,
+        api_version=AZURE_OPENAI_API_VERSION,
+        azure_deployment=CHAT_DEPLOYMENT,
         temperature=0.1,
         max_tokens=600,
     )
 
-    answer  = response.choices[0].message.content
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", SYSTEM_PROMPT),
+        ("user", user_message),
+    ])
+
+    chain = prompt | llm | StrOutputParser()
+
+    answer = chain.invoke({})
     sources = list({f"{c['source']} ({c['source_type']})" for c in chunks})
 
     return {
@@ -439,7 +440,7 @@ def generate_answer(query: str, chunks: list[dict]) -> dict:
         "sources"    : sources,
         "chunks_used": len(chunks),
         "model"      : "gpt-4o-mini",
-        "tokens_used": response.usage.total_tokens,
+        "tokens_used": 0,
     }
 
 

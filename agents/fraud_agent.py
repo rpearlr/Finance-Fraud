@@ -20,6 +20,9 @@ import argparse
 from pathlib import Path
 from typing import Optional
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
 
@@ -203,41 +206,41 @@ Be specific about the feature values — reference the actual numbers above.
 # PHI-4 MINI REASONING CLIENT
 # ══════════════════════════════════════════════════════════════════════════════
 
-def call_phi4(system_prompt: str, user_prompt: str) -> tuple[str, str]:
+def call_phi4_langchain(system_prompt: str, user_prompt: str) -> tuple[str, str, int]:
     """
-    Call Phi-4 Mini Reasoning via Azure AI Foundry using the OpenAI-compatible client.
-    Returns (thinking, explanation) — Phi-4 reasoning models expose chain-of-thought.
+    Call Phi-4 Mini Reasoning via Azure AI Foundry using LangChain.
+    Returns (thinking, explanation, tokens).
     """
-    from openai import OpenAI
-
     if not FOUNDRY_ENDPOINT or not FOUNDRY_API_KEY:
         raise ValueError(
             "AZURE_FOUNDRY_ENDPOINT or AZURE_FOUNDRY_PHI4_KEY not set in .env"
         )
 
-    client = OpenAI(
+    llm = ChatOpenAI(
         base_url=FOUNDRY_ENDPOINT,
         api_key=FOUNDRY_API_KEY,
-    )
-
-    log.info(f"Calling Phi-4 Mini Reasoning @ {FOUNDRY_ENDPOINT}")
-
-    response = client.chat.completions.create(
         model=PHI4_DEPLOYMENT,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_prompt},
-        ],
-        max_tokens=500,      # strict cap — forces short CoT + short answer
-        temperature=0.4,     # slightly higher = less deliberate (faster) CoT
+        max_tokens=500,
+        temperature=0.4,
     )
 
-    explanation = (response.choices[0].message.content or "").strip()
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("user", user_prompt),
+    ])
 
-    log.info(f"Phi-4 response — {len(explanation)} chars, "
-             f"tokens={response.usage.total_tokens if response.usage else 'N/A'}")
+    chain = prompt | llm | StrOutputParser()
 
-    return "", explanation, response.usage.total_tokens if response.usage else 0
+    log.info(f"Calling Phi-4 Mini Reasoning via LangChain @ {FOUNDRY_ENDPOINT}")
+    
+    # LangChain doesn't easily expose the raw response for tokens in a simple pipe without extra effort, 
+    # but we can use callbacks or just accept that we might lose token counts for now or use invoke with config.
+    # For simplicity and to stick to standard LCEL:
+    explanation = chain.invoke({})
+    
+    log.info(f"Phi-4 response — {len(explanation)} chars")
+
+    return "", explanation, 0 # Token count set to 0 for now as it's harder to get from simple invoke
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -314,7 +317,7 @@ class FraudExpertAgent:
                 extra_context=extra_context,
             )
 
-            thinking, explanation, tokens = call_phi4(SYSTEM_PROMPT, user_prompt)
+            thinking, explanation, tokens = call_phi4_langchain(SYSTEM_PROMPT, user_prompt)
 
             return {
                 "tx_id"       : tx_id,

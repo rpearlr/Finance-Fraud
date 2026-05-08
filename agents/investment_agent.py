@@ -9,6 +9,9 @@ import json
 import logging
 from typing import Optional
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
 
@@ -54,41 +57,38 @@ Remember to assess the likely risk profile implicit in the question, provide str
 # PHI-4 MINI REASONING CLIENT
 # ══════════════════════════════════════════════════════════════════════════════
 
-def call_phi4(system_prompt: str, user_prompt: str) -> tuple[str, str, int]:
+def call_phi4_langchain(system_prompt: str, user_prompt: str) -> tuple[str, str, int]:
     """
-    Call Phi-4 Mini Reasoning via Azure AI Foundry using the OpenAI-compatible client.
+    Call Phi-4 Mini Reasoning via Azure AI Foundry using LangChain.
     Returns (thinking, explanation, tokens).
     """
-    from openai import OpenAI
-
     if not FOUNDRY_ENDPOINT or not FOUNDRY_API_KEY:
         raise ValueError(
             "AZURE_FOUNDRY_ENDPOINT or AZURE_FOUNDRY_PHI4_KEY not set in .env"
         )
 
-    client = OpenAI(
+    llm = ChatOpenAI(
         base_url=FOUNDRY_ENDPOINT,
         api_key=FOUNDRY_API_KEY,
-    )
-
-    log.info(f"Calling Phi-4 Mini Reasoning @ {FOUNDRY_ENDPOINT}")
-
-    response = client.chat.completions.create(
         model=PHI4_DEPLOYMENT,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user",   "content": user_prompt},
-        ],
-        max_tokens=700,      # strict cap — forces short CoT + concise advice
+        max_tokens=700,
         temperature=0.4,
     )
 
-    explanation = (response.choices[0].message.content or "").strip()
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        ("user", user_prompt),
+    ])
 
-    log.info(f"Phi-4 response — {len(explanation)} chars, "
-             f"tokens={response.usage.total_tokens if response.usage else 'N/A'}")
+    chain = prompt | llm | StrOutputParser()
 
-    return "", explanation, response.usage.total_tokens if response.usage else 0
+    log.info(f"Calling Phi-4 Mini Reasoning via LangChain @ {FOUNDRY_ENDPOINT}")
+    
+    explanation = chain.invoke({})
+    
+    log.info(f"Phi-4 response — {len(explanation)} chars")
+
+    return "", explanation, 0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -133,7 +133,7 @@ class InvestmentAdviceAgent:
 
         try:
             user_prompt = build_prompt(question)
-            thinking, explanation, tokens = call_phi4(SYSTEM_PROMPT, user_prompt)
+            thinking, explanation, tokens = call_phi4_langchain(SYSTEM_PROMPT, user_prompt)
 
             return {
                 "explanation" : explanation,
