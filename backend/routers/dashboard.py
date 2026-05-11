@@ -1,5 +1,6 @@
+import math
 from fastapi import APIRouter, HTTPException
-from backend.database import col
+from backend.database import query_db, query_one
 from backend.config import log
 
 router = APIRouter(tags=["Dashboard"])
@@ -7,51 +8,56 @@ router = APIRouter(tags=["Dashboard"])
 @router.get("/dashboard/kpis", summary="Get overview dashboard metrics")
 def dashboard_kpis():
     try:
-        txs         = col("transactions")
-        total       = txs.count_documents({})
-        fraud_count = txs.count_documents({"label": 1})
+        # Basic stats
+        total = query_one("SELECT COUNT(*) as c FROM transactions")["c"]
+        fraud_count = query_one("SELECT COUNT(*) as c FROM transactions WHERE label = 1")["c"]
+        
+        # Average fraud score
+        avg_res = query_one("SELECT AVG(fraud_score) as avg FROM transactions WHERE fraud_score IS NOT NULL")
+        raw_avg = avg_res["avg"] if avg_res and avg_res["avg"] is not None else 0.0
+        avg_score = 0.0 if math.isnan(raw_avg) else round(raw_avg, 3)
 
-        agg = txs.aggregate([
-            {"$match": {"fraud_score": {"$exists": True}}},
-            {"$group": {"_id": None, "avg": {"$avg": "$fraud_score"}}},
-        ])
-        avg_score = round(agg[0]["avg"], 3) if agg else 0.0
-
-        pf_row   = col("portfolio_snapshots").find_one(sort=[("snapshot_date", -1)])
+        # Latest portfolio value
+        pf_row = query_one("SELECT total_value_inr FROM portfolio_snapshots ORDER BY snapshot_date DESC LIMIT 1")
         pf_value = pf_row["total_value_inr"] if pf_row else 0.0
 
-        # Hourly fraud aggregation
-        hourly_raw = txs.aggregate([
-            {"$match": {"fraud_score": {"$exists": True}}},
-            {"$group": {
-                "_id"      : {"$hour": "$timestamp"},
-                "avg_score": {"$avg": "$fraud_score"},
-            }},
-            {"$sort": {"_id": 1}},
-        ])
-        hourly_fraud = [
-            {"hour": str(r["_id"]).zfill(2), "avg_score": round(r["avg_score"], 4)}
-            for r in hourly_raw
-        ]
+        # Hourly fraud aggregation using SQL strftime
+        hourly_raw = query_db("""
+            SELECT 
+                strftime('%H', timestamp) as hour,
+                AVG(fraud_score) as avg_score
+            FROM transactions 
+            WHERE fraud_score IS NOT NULL
+            GROUP BY hour
+            ORDER BY hour ASC
+        """)
+        hourly_fraud = []
+        for r in hourly_raw:
+            val = r["avg_score"] if r["avg_score"] is not None else 0.0
+            val = 0.0 if math.isnan(val) else round(val, 4)
+            hourly_fraud.append({"hour": str(r["hour"]).zfill(2), "avg_score": val})
 
         # Recent fraud alerts
-        alert_rows    = txs.find(
-            {"label": 1},
-            {"tx_id": 1, "amount": 1, "fraud_score": 1, "timestamp": 1},
-            sort=[("timestamp", -1)],
-            limit=5,
-        )
+        alert_rows = query_db("""
+            SELECT tx_id, amount, fraud_score, timestamp 
+            FROM transactions 
+            WHERE label = 1 
+            ORDER BY timestamp DESC 
+            LIMIT 5
+        """)
         recent_alerts = [
             {
                 "tx_id" : r["tx_id"],
                 "amount": r["amount"],
                 "score" : round(r["fraud_score"], 2),
-                "time"  : r["timestamp"] if isinstance(r["timestamp"], str) else str(r["timestamp"]),
+                "time"  : r["timestamp"],
             }
             for r in alert_rows
         ]
 
-        active_agents = len(col("agent_queries").distinct("agent_used")) or 3
+        # Active agents count
+        agent_res = query_one("SELECT COUNT(DISTINCT agent_used) as c FROM agent_queries")
+        active_agents = agent_res["c"] if agent_res and agent_res["c"] else 3
 
         return {
             "transactions_today": total,

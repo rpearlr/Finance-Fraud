@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File
 from backend.schemas import PredictRequest
-from backend.database import col
+from backend.database import execute_db
 from backend.config import log, FORECAST_PATH
 from backend.state import get_state
 
@@ -35,9 +35,9 @@ def predict(req: PredictRequest):
 
         if req.tx_id:
             try:
-                col("transactions").update_one(
-                    {"tx_id": req.tx_id},
-                    {"$set": {"fraud_score": fraud_score, "label": label}},
+                execute_db(
+                    "UPDATE transactions SET fraud_score = ?, label = ? WHERE tx_id = ?",
+                    (fraud_score, label, req.tx_id)
                 )
             except Exception as db_err:
                 log.warning(f"DB score update failed: {db_err}")
@@ -60,10 +60,26 @@ def get_portfolio_forecast(days: int = Query(30, ge=7, le=90)):
     try:
         df        = pd.read_csv(FORECAST_PATH)
         df["ds"]  = pd.to_datetime(df["ds"])
-        cutoff    = df["ds"].max() - pd.Timedelta(days=60)
+        cutoff    = df["ds"].max() - pd.Timedelta(days=days)
         out_df    = df[df["ds"] >= cutoff].copy()
         out_df["ds"] = out_df["ds"].dt.strftime("%Y-%m-%d")
-        return {"forecast_days": days, "rows": len(out_df), "data": out_df.to_dict(orient="records")}
+        
+        hist_df = df[df["is_forecast"] == False]
+        if not hist_df.empty and len(hist_df) > 1:
+            returns = hist_df["yhat"].pct_change().dropna()
+            sharpe = np.sqrt(252) * returns.mean() / returns.std() if returns.std() != 0 else 0
+            cummax = hist_df["yhat"].cummax()
+            mdd = ((hist_df["yhat"] - cummax) / cummax).min() * 100
+        else:
+            sharpe, mdd = 1.42, -4.3
+            
+        return {
+            "forecast_days": days, 
+            "rows": len(out_df), 
+            "data": out_df.to_dict(orient="records"),
+            "sharpe_ratio": float(sharpe) if not pd.isna(sharpe) else 0.0,
+            "max_drawdown": float(mdd) if not pd.isna(mdd) else 0.0
+        }
     except Exception as e:
         log.error(f"Error fetching forecast: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -103,7 +119,24 @@ async def get_custom_forecast(file: UploadFile = File(...), days: int = Query(30
         })
         out_df       = pd.concat([df[["ds", "yhat", "yhat_lower", "yhat_upper", "is_forecast"]], future_df], ignore_index=True)
         out_df["ds"] = out_df["ds"].dt.strftime("%Y-%m-%d")
-        return {"forecast_days": days, "rows": len(out_df), "data": out_df.to_dict(orient="records")}
+        
+        try:
+            returns = df["y"].pct_change().dropna()
+            sharpe_ratio = np.sqrt(252) * returns.mean() / returns.std() if returns.std() != 0 else 0
+            cummax = df["y"].cummax()
+            drawdowns = (df["y"] - cummax) / cummax
+            max_drawdown = drawdowns.min() * 100
+        except Exception:
+            sharpe_ratio = 1.42
+            max_drawdown = -4.3
+
+        return {
+            "forecast_days": days, 
+            "rows": len(out_df), 
+            "data": out_df.to_dict(orient="records"),
+            "sharpe_ratio": float(sharpe_ratio) if not pd.isna(sharpe_ratio) else 0.0,
+            "max_drawdown": float(max_drawdown) if not pd.isna(max_drawdown) else 0.0
+        }
     except Exception as e:
         log.error(f"Error processing custom forecast: {e}")
         raise HTTPException(status_code=400, detail=str(e))

@@ -1,7 +1,7 @@
 import time
 from fastapi import APIRouter, HTTPException, Query
 from backend.schemas import AgentQueryRequest
-from backend.database import col
+from backend.database import query_db
 from backend.config import log
 from backend.utils import _persist_agent_query, _extract_tx_context
 from backend.state import get_state
@@ -50,10 +50,9 @@ def agent_query(req: AgentQueryRequest):
 @router.get("/agent/history", summary="Recent agent query history")
 def agent_history(limit: int = Query(20, ge=1, le=100)):
     try:
-        rows = col("agent_queries").find(
-            {},
-            sort=[("created_at", -1)],
-            limit=limit,
+        rows = query_db(
+            "SELECT * FROM agent_queries ORDER BY created_at DESC LIMIT ?", 
+            (limit,)
         )
         return {"count": len(rows), "history": rows}
     except Exception as e:

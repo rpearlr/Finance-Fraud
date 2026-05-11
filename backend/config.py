@@ -21,4 +21,9 @@ FORECAST_PATH = BASE_DIR / "data" / "staged" / "portfolio_forecast.csv"
 
 # ── SQLite ─────────────────────────────────────────────────────────────────────
 SQLITE_PATH = os.getenv("SQLITE_PATH", str(BASE_DIR / "finrisk.db"))
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+ALLOWED_ORIGINS = "*"
+
+# ── Auth (JWT) ────────────────────────────────────────────────────────────────
+JWT_SECRET = os.getenv("JWT_SECRET", "980962873db841f32a82208b088e5d023b6b12f6d2f3c7e0980962873db841f3")
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 # 24 hours

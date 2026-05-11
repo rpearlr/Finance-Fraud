@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -7,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.config import log, ALLOWED_ORIGINS
 from backend.database import init_db, close_db
 from backend.state import load_model
-from backend.routers import data, ml, regulatory, agent, dashboard, reports, system, frontend
+from backend.routers import data, ml, regulatory, agent, dashboard, reports, system, frontend, auth
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -44,7 +43,7 @@ app.include_router(agent.router)
 app.include_router(dashboard.router)
 app.include_router(reports.router)
 app.include_router(system.router)
+app.include_router(auth.router)
 app.include_router(frontend.router)
 
-# Mounted last so it never shadows API routes
-app.mount("/", StaticFiles(directory="frontend"), name="frontend")
+app.mount("/static", StaticFiles(directory="frontend"), name="static")

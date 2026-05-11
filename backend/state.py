@@ -1,10 +1,10 @@
 import pickle
 from backend.config import MODEL_PATH, FEATURES_PATH, log
-from backend.database import col
+from backend.config import MODEL_PATH, FEATURES_PATH, log
 from agents.fraud_agent import FraudExpertAgent
 from agents.rag_pipeline import DocumentAssistantAgent, warmup_embed_model
 from agents.investment_agent import InvestmentAdviceAgent
-from agents.orchestrator import LangChainOrchestrator, set_db_col_func
+from agents.orchestrator import LangChainOrchestrator
 
 _model        = None
 _feature_cols = None
@@ -25,8 +25,11 @@ def load_model() -> None:
     _rag_agent        = DocumentAssistantAgent()
     _investment_agent = InvestmentAdviceAgent()
 
-    set_db_col_func(col)
-    _orchestrator = LangChainOrchestrator()
+    _orchestrator = LangChainOrchestrator(
+        fraud_agent=_fraud_agent,
+        rag_agent=_rag_agent,
+        investment_agent=_investment_agent
+    )
 
     log.info("Agents initialised")
 

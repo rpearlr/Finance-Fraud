@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from typing import Optional
 from backend.config import log
-from backend.database import col
+from backend.database import execute_db, query_one
 
 def _detect_source_filter(question_lower: str) -> Optional[str]:
     if any(k in question_lower for k in ["sebi", "aif", "mutual fund", "securities"]):
@@ -22,16 +22,12 @@ def _persist_agent_query(
     sources: list, chunks_used: int, tokens_used: int, latency_ms: int,
 ) -> None:
     try:
-        col("agent_queries").insert_one({
-            "question"   : question,
-            "agent_used" : agent_used,
-            "answer"     : answer,
-            "sources"    : sources,
-            "chunks_used": chunks_used,
-            "tokens_used": tokens_used,
-            "latency_ms" : latency_ms,
-            "created_at" : datetime.utcnow().isoformat(),
-        })
+        execute_db(
+            """INSERT INTO agent_queries 
+               (question, agent_used, answer, sources, chunks_used, tokens_used, latency_ms) 
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (question, agent_used, answer, sources, chunks_used, tokens_used, latency_ms)
+        )
     except Exception as e:
         log.warning(f"Could not persist agent query: {e}")
 
@@ -41,7 +37,7 @@ def _extract_tx_context(question: str) -> tuple:
 
     if tx_id:
         try:
-            row = col("transactions").find_one({"tx_id": tx_id})
+            row = query_one("SELECT * FROM transactions WHERE tx_id = ?", (tx_id,))
             if row and row.get("fraud_score") is not None:
                 log.info(f"Found tx {tx_id} in SQLite — score={row['fraud_score']:.4f}")
                 return tx_id, row["fraud_score"], row.get("features", {})

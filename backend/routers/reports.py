@@ -4,6 +4,7 @@ from backend.schemas import ReportRequest
 from backend.config import log
 from backend.state import get_state
 from backend.pdf_generator import build_fraud_report, build_investment_report
+from backend.utils import _extract_tx_context
 
 router = APIRouter(tags=["Reports"])
 
@@ -17,13 +18,17 @@ def generate_report(req: ReportRequest):
         if req.report_type == "fraud":
             if not req.tx_id:
                 raise HTTPException(status_code=400, detail="tx_id required for fraud report")
-            result      = fraud_agent.explain(
-                fraud_score=0.94,
-                features={"amount": 2400, "velocity_24tx": 8200, "V14": -4.1, "V17": -4.0},
-                tx_id=req.tx_id,
+            
+            # Dynamically extract context instead of hardcoded values
+            tx_id, fraud_score, features = _extract_tx_context(req.tx_id)
+            
+            result = fraud_agent.explain(
+                fraud_score=fraud_score,
+                features=features,
+                tx_id=tx_id,
             )
-            pdf_buffer  = build_fraud_report(req.tx_id, result.get("fraud_score", 0.94), result.get("explanation", ""))
-            filename    = f"Fraud_Report_{req.tx_id}.pdf"
+            pdf_buffer = build_fraud_report(tx_id, result.get("fraud_score", fraud_score), result.get("explanation", ""))
+            filename   = f"Fraud_Report_{tx_id}.pdf"
 
         elif req.report_type == "investment":
             if not req.query:

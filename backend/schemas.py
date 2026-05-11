@@ -60,3 +60,19 @@ class ReportRequest(BaseModel):
     report_type: str           = Field(..., description="'fraud' or 'investment'")
     query      : Optional[str] = None
     tx_id      : Optional[str] = None
+
+class UserRegister(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: str    = Field(..., pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+    password: str = Field(..., min_length=6)
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class AuthResponse(BaseModel):
+    status: str
+    message: str
+    user_id: Optional[int] = None
+    username: Optional[str] = None
+    token: Optional[str] = None

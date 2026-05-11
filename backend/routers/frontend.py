@@ -1,16 +1,20 @@
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 router = APIRouter(tags=["Frontend"])
 
 @router.get("/")
-async def serve_login():
-    return FileResponse("frontend/finrisk_login.html")
+async def serve_root():
+    return RedirectResponse(url="/finrisk_login.html")
 
 @router.get("/dashboard")
 async def serve_dashboard():
     return FileResponse("frontend/finrisk_kpi_dashboard.html")
+
+@router.get("/login")
+async def serve_login_alt():
+    return FileResponse("frontend/finrisk_login.html")
 
 @router.get("/{filename}.html")
 async def serve_html_files(filename: str):

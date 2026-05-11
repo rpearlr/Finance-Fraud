@@ -25,7 +25,7 @@ def search(
     try:
         from agents.rag_pipeline import retrieve_chunks
         effective_source = source or _detect_source_filter(q.lower())
-        chunks = retrieve_chunks(q, source_filter=effective_source)
+        chunks = retrieve_chunks(q, source_filter=effective_source, top_k=top_k)
 
         return {
             "query"        : q,
