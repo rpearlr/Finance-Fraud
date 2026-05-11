@@ -1,8 +1,0 @@
-.env
-.venv/
-__pycache__/
-*.pkl
-.gitignore
-.gitattributes
-seed_db.py
-.dockerignore
