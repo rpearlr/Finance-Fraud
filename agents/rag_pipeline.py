@@ -1,23 +1,3 @@
-"""
-Phase 4 — RAG Pipeline: Regulatory Document Assistant
-Run from project root:
-
-  Step 1 — Index documents : python agents/rag_pipeline.py index
-  Step 2 — Test locally    : python agents/rag_pipeline.py query "What are SEBI AIF disclosure requirements?"
-  Step 3 — Import in FastAPI: from agents.rag_pipeline import DocumentAssistantAgent
-
-Pipeline stages:
-  PDF files in data/docs/
-    -> pypdf (extract clean text)
-    -> RecursiveCharacterTextSplitter (chunk into ~500 char pieces)
-    -> HuggingFace all-MiniLM-L6-v2 (free local embeddings, 384-dim)
-    -> FAISS local vector store (free, no Azure needed)
-    -> On query: embed question -> FAISS search -> top-k chunks -> Azure gpt-4o-mini -> grounded answer
-
-Cost: only Azure OpenAI gpt-4o-mini calls cost money (~$0.001 per query).
-      Embeddings and vector search are 100% free and local.
-"""
-
 import os
 import sys
 import time
@@ -28,7 +8,6 @@ from pathlib import Path
 from typing import Optional
 from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -58,9 +37,7 @@ AZURE_OPENAI_KEY         = os.getenv("AZURE_OPENAI_KEY")
 AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-12-01-preview")
 CHAT_DEPLOYMENT          = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o-mini")
 
-# Azure Document Intelligence — optional, falls back to pypdf if not set
-DOC_INTEL_ENDPOINT = os.getenv("AZURE_DOC_INTELLIGENCE_ENDPOINT")
-DOC_INTEL_KEY      = os.getenv("AZURE_DOC_INTELLIGENCE_KEY")
+
 
 # ── Module-level state ─────────────────────────────────────────────────────────
 _embed_model  = None   # HuggingFace SentenceTransformer, loaded once per session
@@ -85,8 +62,7 @@ SOURCE_TYPE_MAP = {
 def extract_text_from_pdf(pdf_path: Path) -> str:
     """
     Extract text from a PDF file.
-    Tries Azure Document Intelligence first if configured (handles scanned PDFs).
-    Falls back to pypdf for normal text-based PDFs.
+    Extract text from a PDF file using pypdf.
     Results are cached by MD5 hash — unchanged PDFs are never re-extracted.
     """
     file_hash  = hashlib.md5(pdf_path.read_bytes()).hexdigest()
@@ -97,39 +73,16 @@ def extract_text_from_pdf(pdf_path: Path) -> str:
         return cache_path.read_text(encoding="utf-8")
 
     text = ""
-
-    # ── Try Azure Document Intelligence (optional) ─────────────────────────────
-    if DOC_INTEL_ENDPOINT and DOC_INTEL_KEY:
-        try:
-            from azure.ai.formrecognizer import DocumentAnalysisClient
-            from azure.core.credentials import AzureKeyCredential
-
-            log.info(f"  Extracting {pdf_path.name} via Azure Document Intelligence...")
-            client = DocumentAnalysisClient(
-                endpoint=DOC_INTEL_ENDPOINT,
-                credential=AzureKeyCredential(DOC_INTEL_KEY)
-            )
-            with open(pdf_path, "rb") as f:
-                poller = client.begin_analyze_document("prebuilt-read", f)
-            result = poller.result()
-            text   = "\n".join([p.content for p in result.paragraphs])
-            log.info(f"  Extracted {len(text):,} chars via Document Intelligence")
-
-        except Exception as e:
-            log.warning(f"  Document Intelligence failed: {e} — falling back to pypdf")
-
-    # ── Fallback: pypdf ────────────────────────────────────────────────────────
-    if not text:
-        try:
-            from pypdf import PdfReader
-            log.info(f"  Extracting {pdf_path.name} via pypdf...")
-            reader = PdfReader(str(pdf_path))
-            pages  = [page.extract_text() or "" for page in reader.pages]
-            text   = "\n\n".join(pages)
-            log.info(f"  Extracted {len(text):,} chars from {len(pages)} pages")
-        except Exception as e:
-            log.error(f"  pypdf extraction failed: {e}")
-            raise
+    try:
+        from pypdf import PdfReader
+        log.info(f"  Extracting {pdf_path.name} via pypdf...")
+        reader = PdfReader(str(pdf_path))
+        pages  = [page.extract_text() or "" for page in reader.pages]
+        text   = "\n\n".join(pages)
+        log.info(f"  Extracted {len(text):,} chars from {len(pages)} pages")
+    except Exception as e:
+        log.error(f"  pypdf extraction failed: {e}")
+        raise
 
     if not text.strip():
         log.warning(f"  No text found in {pdf_path.name}")
@@ -313,7 +266,7 @@ def load_faiss_index() -> bool:
 # STAGE 5 — RETRIEVAL
 # ══════════════════════════════════════════════════════════════════════════════
 
-def retrieve_chunks(query: str, source_filter: Optional[str] = None) -> list[dict]:
+def retrieve_chunks(query: str, source_filter: Optional[str] = None, top_k: int = TOP_K) -> list[dict]:
     """
     Embed the query, search FAISS for nearest neighbours,
     optionally filter by source type (SEBI / RBI / Basel / FEMA),
@@ -332,8 +285,8 @@ def retrieve_chunks(query: str, source_filter: Optional[str] = None) -> list[dic
     query_embedding = get_embeddings([query])[0]
     vector = np.array([query_embedding], dtype="float32")
 
-    # Fetch extra results when filtering so we still get TOP_K after filter
-    k = min(TOP_K * 3 if source_filter else TOP_K, _faiss_index.ntotal)
+    # Fetch extra results when filtering so we still get top_k after filter
+    k = min(top_k * 3 if source_filter else top_k, _faiss_index.ntotal)
     scores, indices = _faiss_index.search(vector, k)
 
     results = []
@@ -353,7 +306,7 @@ def retrieve_chunks(query: str, source_filter: Optional[str] = None) -> list[dic
             "relevance_score": round(float(score), 4),
         })
 
-        if len(results) == TOP_K:
+        if len(results) == top_k:
             break
 
     log.info(f"Retrieved {len(results)} chunks for: '{query[:60]}'")
@@ -430,9 +383,14 @@ def generate_answer(query: str, chunks: list[dict]) -> dict:
         ("user", user_message),
     ])
 
-    chain = prompt | llm | StrOutputParser()
-
-    answer = chain.invoke({})
+    prompt_value = prompt.invoke({})
+    response = llm.invoke(prompt_value)
+    
+    answer = response.content
+    tokens = 0
+    if hasattr(response, "usage_metadata") and response.usage_metadata:
+        tokens = response.usage_metadata.get("total_tokens", 0)
+    
     sources = list({f"{c['source']} ({c['source_type']})" for c in chunks})
 
     return {
@@ -440,7 +398,7 @@ def generate_answer(query: str, chunks: list[dict]) -> dict:
         "sources"    : sources,
         "chunks_used": len(chunks),
         "model"      : "gpt-4o-mini",
-        "tokens_used": 0,
+        "tokens_used": tokens,
     }
 
 
@@ -475,7 +433,7 @@ class DocumentAssistantAgent:
             log.warning("Azure OpenAI not configured — answers will be raw chunk text")
         return True
 
-    def run(self, question: str, source_filter: Optional[str] = None) -> dict:
+    def run(self, question: str, source_filter: Optional[str] = None, top_k: int = TOP_K) -> dict:
         """
         Full RAG pipeline: retrieve -> generate -> return structured response.
 
@@ -500,7 +458,7 @@ class DocumentAssistantAgent:
 
         try:
             start  = time.time()
-            chunks = retrieve_chunks(question, source_filter)
+            chunks = retrieve_chunks(question, source_filter, top_k=top_k)
             result = generate_answer(question, chunks)
             result["latency_ms"] = int((time.time() - start) * 1000)
             result["agent"]      = "rag_agent"

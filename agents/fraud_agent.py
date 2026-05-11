@@ -50,7 +50,7 @@ FEATURE_DESCRIPTIONS = {
     "V1"            : "PCA component 1 (card behaviour pattern)",
     "V2"            : "PCA component 2 (merchant interaction pattern)",
     "V3"            : "PCA component 3 (transaction frequency pattern)",
-    "V4"            : "PCA component 4 (geographic pattern)",
+    "V4"            : "PCA component 4 (geograpFhic pattern)",
     "V5"            : "PCA component 5 (device fingerprint pattern)",
     "V6"            : "PCA component 6",
     "V7"            : "PCA component 7",
@@ -77,12 +77,7 @@ FEATURE_DESCRIPTIONS = {
     "V28"           : "PCA component 28",
 }
 
-# Risk thresholds
-RISK_LEVELS = {
-    (0.80, 1.01): ("HIGH",   "🔴", "Immediate review required"),
-    (0.50, 0.80): ("MEDIUM", "🟡", "Flag for manual review"),
-    (0.00, 0.50): ("LOW",    "🟢", "Within normal parameters"),
-}
+
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -133,10 +128,16 @@ def get_top_features(features: dict, top_n: int = 8) -> list[dict]:
 
 
 def get_risk_level(score: float) -> tuple[str, str, str]:
-    for (low, high), (level, icon, action) in RISK_LEVELS.items():
-        if low <= score < high:
-            return level, icon, action
-    return "HIGH", "🔴", "Immediate review required"
+    """
+    Categorize fraud score into risk levels.
+    Boundaries: High >= 0.80, Medium >= 0.50, else Low.
+    """
+    if score >= 0.80:
+        return "HIGH", "🔴", "Immediate review required"
+    elif score >= 0.50:
+        return "MEDIUM", "🟡", "Flag for manual review"
+    else:
+        return "LOW", "🟢", "Within normal parameters"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -169,8 +170,7 @@ def build_prompt(
         bar = "#" * int(f["importance"] * 40) if f["importance"] > 0 else "-"
         feature_lines.append(
             f"  {f['name']:<20} value={f['value']:>8.4f}  "
-            f"importance={f['importance']:.4f}  [{bar}]\n"
-            f"                       ({f['description']})"
+            f"importance={f['importance']:.4f}  [{bar}]"
         )
     feature_table = "\n".join(feature_lines)
 
@@ -231,7 +231,7 @@ def call_phi4_langchain(system_prompt: str, user_prompt: str) -> tuple[str, str,
 
     chain = prompt | llm | StrOutputParser()
 
-    log.info(f"Calling Phi-4 Mini Reasoning via LangChain @ {FOUNDRY_ENDPOINT}")
+    log.info(f"Calling Phi-4 via LangChain @ {FOUNDRY_ENDPOINT}")
     
     # LangChain doesn't easily expose the raw response for tokens in a simple pipe without extra effort, 
     # but we can use callbacks or just accept that we might lose token counts for now or use invoke with config.
@@ -344,7 +344,7 @@ class FraudExpertAgent:
                 "thinking"   : "",
                 "top_features": [],
                 "tokens_used": 0,
-                "model" : "Phi-4-mini-reaoning" ,
+                "model" : "Phi-4" ,
                 "agent"      : "fraud_expert_agent",
             }
 
