@@ -1,33 +1,24 @@
 ============================================================
-PROPHET FORECASTING EVALUATION REPORT
-Generated  : 2026-05-06 11:30:39
-Horizon    : 30 days
-Train split: 85% train / 15% test
+PROPHET PORTFOLIO FORECAST — EVALUATION REPORT
+Generated  : 2026-05-10 15:52:11
+Source     : portfolio_snapshots
+Date range : 2025-04-06 → 2026-05-10
+Train rows : 340
+Test rows  : 60
+Horizon    : 90 days
+Train split: 85% / 15%
 ============================================================
 
--- Stock Price Forecasts --
-  Ticker                     RMSE       MAPE
-  ------------------------------------------
-  HDFCBANK.NS              147.56     14.01%
-  INFY.NS                  152.66     10.01%
-  TCS.NS                   335.47     11.62%
-  RELIANCE.NS              258.11     17.38%
-  ICICIBANK.NS             129.84      8.27%
-  ------------------------------------------
-  Average                             12.26%
+-- Accuracy on held-out test period --
+  RMSE : 1,350,696,356.10
+  MAPE : 25.27%
 
--- Portfolio Value Forecast --
-  RMSE : 401,427,985.84 INR
-  MAPE : 7.05%
+-- MAPE interpretation --
+  < 5%   : Excellent
+  5-10%  : Good — acceptable for 30-90 day financial forecast
+  > 10%  : High uncertainty — expected for volatile data
 
--- Output Files --
-  data/staged/stock_forecast.csv
-  data/staged/portfolio_forecast.csv
-  ml/models/prophet_stock_*.pkl
-  ml/models/prophet_portfolio.pkl
-
--- What these numbers mean --
-  MAPE < 5%  : Excellent forecast accuracy
-  MAPE 5-10% : Good — acceptable for 30-day financial forecast
-  MAPE > 10% : High uncertainty — expected for volatile stocks
+-- Output files --
+  C:\Users\User\Desktop\fin-prj\data\staged\portfolio_forecast.csv
+  C:\Users\User\Desktop\fin-prj\ml\models\prophet_portfolio.pkl
 ============================================================
