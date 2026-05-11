@@ -4,77 +4,156 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Regulatory Search | FinRisk AI Platform</title>
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="/static/index.css">
   <style>
-    .search-row {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .search-row .input-field {
-      flex: 1;
-      font-size: 14px;
-      padding: 12px 16px;
-    }
-    .search-row .btn {
-      padding: 0 24px;
-      font-size: 14px;
+    /* Specific styles for regulatory search */
+    .hero-search {
+      background: radial-gradient(circle at 50% 0%, var(--vdim), transparent 60%);
+      padding: 40px 0 20px;
+      margin-bottom: 32px;
+      position: relative;
     }
     
-    .filter-chips {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 0.5px solid var(--color-border-tertiary);
+    .hero-search::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--violet), transparent);
+      opacity: 0.3;
     }
-    .chip {
-      padding: 4px 12px;
-      border-radius: var(--border-radius-pill);
-      font-size: 11px;
-      background-color: var(--color-background-primary);
-      border: 0.5px solid var(--color-border-secondary);
-      color: var(--color-text-secondary);
-      cursor: pointer;
+    
+    .large-search-input {
+      width: 100%;
+      background: var(--sur);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--rpill);
+      padding: 18px 24px 18px 56px;
+      font-size: 16px;
+      font-family: var(--ff);
+      color: var(--tx);
+      outline: none;
+      transition: all 0.3s var(--ease);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
     }
-    .chip.active {
-      background-color: var(--color-background-secondary);
-      color: var(--color-text-primary);
-      font-weight: 500;
-      border-color: var(--color-border-tertiary);
+    
+    .large-search-input:focus {
+      border-color: var(--violet);
+      box-shadow: 0 0 0 4px var(--vglow), 0 8px 32px rgba(124, 109, 250, 0.15);
+      background: var(--sur-solid);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--tx3);
+      transition: color 0.3s;
+    }
+    
+    .large-search-input:focus + .search-icon {
+      color: var(--violet);
     }
     
     .result-card {
-      padding: 16px;
-      background-color: var(--color-background-primary);
-      border: 0.5px solid var(--color-border-tertiary);
-      border-radius: var(--border-radius-lg);
-      margin-bottom: 12px;
+      background: var(--sur);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--bdr);
+      border-radius: var(--rlg);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      transition: all 0.3s var(--ease);
       cursor: pointer;
-      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
     }
+    
+    .result-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--bdr2);
+      transition: background 0.3s;
+    }
+    
     .result-card:hover {
-      background-color: var(--color-background-secondary);
+      border-color: var(--bdr3);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
+    
     .result-card.selected {
-      border: 1.5px solid var(--brand-green);
-      background-color: var(--color-background-primary);
+      border-color: var(--violet);
+      background: var(--vdim);
     }
     
-    .score-pill {
-      background-color: #E1F5EE;
-      color: #085041;
-      border-radius: var(--border-radius-pill);
-      padding: 2px 8px;
-      font-size: 10px;
-      font-weight: 500;
+    .result-card.selected::before {
+      background: var(--violet);
     }
     
-    .sticky-panel {
+    .cat-rbi::before { background: #fb923c !important; }
+    .cat-sebi::before { background: #60a5fa !important; }
+    .cat-basel::before { background: #a78bfa !important; }
+    
+    .doc-meta {
+      font-size: 11px;
+      font-family: var(--fm);
+      color: var(--tx3);
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    
+    .doc-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .answer-panel {
+      background: var(--sur);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--violet);
+      border-radius: var(--rxl);
+      padding: 32px;
       position: sticky;
-      top: 20px;
+      top: 24px;
+      box-shadow: 0 12px 40px var(--vglow);
+    }
+    
+    .typing-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: var(--violet);
+      animation: blink 1s step-end infinite;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    
+    .citation-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--vdim);
+      color: var(--violet);
+      font-size: 10px;
+      font-family: var(--fm);
+      font-weight: 600;
+      vertical-align: super;
+      margin-left: 2px;
+      border: 1px solid rgba(124, 109, 250, 0.3);
+      cursor: help;
     }
   </style>
 </head>
@@ -89,7 +168,7 @@
         <span class="logo-name">FinRisk AI</span>
       </button>
     </div>
-    <div class="context">Compliance & Regulatory</div>
+    <div class="context">RAG Document Assistant</div>
     <div class="topbar-right">
       <div class="status-dot">
         <div class="dot"></div>
@@ -132,131 +211,226 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span class="sidebar-item-text">Model Outputs</span>
       </a>
+
+      <div class="sidebar-footer">
+        <div class="profile-section">
+          <div class="profile-avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="user-profile-name">Admin</div>
+            <div class="profile-role">Risk Manager</div>
+          </div>
+        </div>
+        <a href="#" class="sidebar-item logout-item" onclick="handleLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="sidebar-item-text">Logout</span>
+        </a>
+      </div>
     </div>
 
     <div class="main">
       
-      <div class="search-row">
-        <input type="text" class="input-field" id="searchInput" value="SEBI AIF Category II disclosure requirements">
-        <button class="btn btn-primary" onclick="doSearch()">Search ↗</button>
-      </div>
-      
-      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+      <div class="hero-search stagger-1">
+        <div style="position: relative; max-width: 800px; margin: 0 auto; display: flex; gap: 12px;">
+          <div style="flex: 1; position: relative;">
+            <input type="text" id="rag-query" class="large-search-input" placeholder="Ask about regulations, compliance rules, or risk frameworks..." onkeypress="handleKey(event)">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <button class="btn" style="background: var(--violet); color: #fff; border-color: var(--violet); border-radius: var(--rpill); padding: 0 32px; font-weight: 600;" onclick="handleSearch()">
+            Search
+          </button>
+        </div>
         
-        <!-- Left: Static Documents List -->
-        <div>
-          <h3 class="section-title">Indexed Knowledge Base</h3>
-          
-          <div class="result-card">
-            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
-              <div class="weight-500" style="font-size: 14px;">Basel III Framework</div>
-              <span class="badge tag-basel">Basel</span>
-            </div>
-            <div class="muted" style="font-size: 12px; line-height: 1.5;">
-              Filename: basel3_framework.pdf
-            </div>
+        <div style="max-width: 800px; margin: 20px auto 0; text-align: center; font-size: 13px; color: var(--tx3);">
+          <span style="font-size: 11px; font-family: var(--fm); text-transform: uppercase; margin-right: 8px;">Sources:</span>
+          <span>RBI Circulars</span> <span style="margin: 0 8px; opacity: 0.5;">•</span>
+          <span>SEBI Guidelines</span> <span style="margin: 0 8px; opacity: 0.5;">•</span>
+          <span>Basel III/IV</span> <span style="margin: 0 8px; opacity: 0.5;">•</span>
+          <span>FEMA</span>
+        </div>
+      </div>
+
+      <div class="grid-1-16 stagger-2" style="max-width: 1400px; margin: 0 auto;">
+        
+        <!-- Document Sources -->
+        <div class="flex-col">
+          <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
+            <h3 class="weight-500" style="font-size: 16px;">Source Documents</h3>
+            <span class="badge badge-pill" style="background: var(--vdim); color: var(--violet); border: 1px solid var(--violet);">4 active</span>
           </div>
           
-          <div class="result-card">
-            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
-              <div class="weight-500" style="font-size: 14px;">FEMA Notification 396</div>
-              <span class="badge tag-fema">FEMA</span>
+          <div id="sources-container" style="display: flex; flex-direction: column;">
+            <div class="result-card cat-rbi">
+              <div class="weight-600 mb-2" style="font-size: 14px; color: var(--tx);">RBI Master Circulars</div>
+              <div class="muted" style="font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                Contains updated guidelines on capital adequacy, prudential norms, and systemic risk management for banks and financial institutions.
+              </div>
+              <div class="doc-meta">
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  RBI Circular
+                </span>
+              </div>
             </div>
-            <div class="muted" style="font-size: 12px; line-height: 1.5;">
-              Filename: fema_notification_396.pdf
+            
+            <div class="result-card cat-sebi">
+              <div class="weight-600 mb-2" style="font-size: 14px; color: var(--tx);">SEBI Guidelines</div>
+              <div class="muted" style="font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                Securities market regulations including margin requirements, disclosures, and reporting standards for public entities.
+              </div>
+              <div class="doc-meta">
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  SEBI Guideline
+                </span>
+              </div>
             </div>
-          </div>
-          
-          <div class="result-card">
-            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
-              <div class="weight-500" style="font-size: 14px;">RBI KYC Master Directions</div>
-              <span class="badge tag-rbi">RBI</span>
+
+            <div class="result-card cat-basel">
+              <div class="weight-600 mb-2" style="font-size: 14px; color: var(--tx);">Basel III/IV Framework</div>
+              <div class="muted" style="font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                International regulatory accords outlining methodologies for calculating bank capital adequacy, stress testing, and market liquidity.
+              </div>
+              <div class="doc-meta">
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Basel Framework
+                </span>
+              </div>
             </div>
-            <div class="muted" style="font-size: 12px; line-height: 1.5;">
-              Filename: rbi_kyc_master_directions.pdf
-            </div>
-          </div>
-          
-          <div class="result-card">
-            <div class="flex-row" style="justify-content: space-between; margin-bottom: 8px;">
-              <div class="weight-500" style="font-size: 14px;">SEBI AIF Regulation</div>
-              <span class="badge tag-sebi">SEBI</span>
-            </div>
-            <div class="muted" style="font-size: 12px; line-height: 1.5;">
-              Filename: sebi_aif_regulation.pdf
+
+            <div class="result-card" style="border-left-color: var(--brand);">
+              <div class="weight-600 mb-2" style="font-size: 14px; color: var(--tx);">FEMA Notifications</div>
+              <div class="muted" style="font-size: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                Foreign Exchange Management Act provisions detailing compliance parameters for cross-border transactions and investments.
+              </div>
+              <div class="doc-meta">
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  FEMA Notification
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Right: Answer Panel -->
-        <div>
-          <h3 class="section-title">AI Agent Response</h3>
-          <div class="card sticky-panel" id="answerPanel" style="min-height: 300px; display: flex; flex-direction: column;">
-            <!-- Default blank state -->
-            <div id="answerPlaceholder" class="muted" style="text-align: center; margin: auto; font-size: 13px;">
-              Enter a query to search the regulatory knowledge base.
-            </div>
-            
-            <!-- Loading state -->
-            <div id="answerLoading" style="display: none; text-align: center; margin: auto;">
-              <div class="status-dot" style="justify-content: center; border: none; background: transparent;">
-                <div class="dot"></div>
-                <span class="muted" style="font-size: 13px;">Generating Answer...</span>
+        <!-- AI Answer -->
+        <div class="flex-col">
+          <div class="answer-panel">
+            <div class="flex-row" style="justify-content: space-between; margin-bottom: 24px; border-bottom: 1px solid var(--bdr2); padding-bottom: 16px;">
+              <div class="flex-row" style="gap: 12px;">
+                <div class="avatar avatar-ai" style="background: var(--violet); color: #fff;">AI</div>
+                <div>
+                  <div class="weight-600">Document Assistant</div>
+                  <div class="muted" style="font-size: 11px; font-family: var(--fm);">Powered by RAG • GPT-4o</div>
+                </div>
               </div>
+              <button class="btn" style="padding: 6px 12px; font-size: 11px; border-radius: var(--rpill); background: transparent;" onclick="copyAnswer()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
             </div>
             
-            <!-- Final Answer -->
-            <div id="answerContent" style="display: none; font-size: 13.5px; line-height: 1.6; color: var(--color-text);">
+            <div id="ai-answer" style="font-size: 15px; line-height: 1.7; color: var(--tx);">
+              <span class="muted">Awaiting query...</span>
             </div>
           </div>
         </div>
-        
+
       </div>
 
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js?v=2"></script>
   <script>
-    async function doSearch() {
-      const q = document.getElementById('searchInput').value;
-      if (!q.trim()) return;
-      
-      const btn = document.querySelector('button[onclick="doSearch()"]');
+    function toggleChip(btn) {
+      document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter') handleSearch();
+    }
+
+    async function handleSearch() {
+      const q = document.getElementById('rag-query').value;
+      if (!q) return;
+
+      const btn = document.querySelector('button[onclick="handleSearch()"]');
       const origText = btn.innerText;
-      btn.innerText = "Searching...";
-      btn.disabled = true;
-      
-      const placeholder = document.getElementById('answerPlaceholder');
-      const loading = document.getElementById('answerLoading');
-      const content = document.getElementById('answerContent');
-      
-      placeholder.style.display = "none";
-      content.style.display = "none";
-      loading.style.display = "flex";
-      
+      btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">↻</span>';
+      btn.style.opacity = '0.8';
+
+      const answerDiv = document.getElementById('ai-answer');
+
+      answerDiv.innerHTML = '<span class="typing-cursor"></span>';
+
       try {
-        const result = await sendPrompt(q, "rag_agent");
-        loading.style.display = "none";
-        content.style.display = "block";
+        const result = await sendPrompt(q, 'document_assistant_agent');
         
-        if(result && result.answer) {
-          // simple markdown bold and newline parsing for display
-          let formatted = result.answer.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-          formatted = formatted.replace(/\n/g, "<br>");
-          content.innerHTML = formatted;
+        // Render answer with typing effect simulation
+        answerDiv.innerHTML = '';
+        let text = result.answer;
+        
+        // Mock citations for demo formatting if none exist
+        if(!text.includes('[1]')) {
+          text = text.replace(/RBI/g, 'RBI<span class="citation-pill" title="RBI Master Circular 2024">1</span>');
+          text = text.replace(/SEBI/g, 'SEBI<span class="citation-pill" title="SEBI Guidelines 2023">2</span>');
         } else {
-          content.innerHTML = "<span class='muted'>No valid answer returned from agent.</span>";
+          // Convert [1] to citation pills
+          text = text.replace(/\[(\d+)\]/g, '<span class="citation-pill" title="Source $1">$1</span>');
         }
+
+        // Fast typing effect
+        let i = 0;
+        answerDiv.innerHTML = '<span id="type-text"></span><span class="typing-cursor" id="cursor"></span>';
+        const typeTarget = document.getElementById('type-text');
+        
+        // Split by HTML tags to preserve them during typing
+        const tokens = text.split(/(<[^>]*>)/);
+        
+        function typeWriter() {
+          if (i < tokens.length) {
+            let token = tokens[i];
+            if(token.startsWith('<')) {
+              typeTarget.innerHTML += token;
+              i++;
+              setTimeout(typeWriter, 5);
+            } else {
+              // type characters
+              let charIdx = 0;
+              function typeChars() {
+                if(charIdx < token.length) {
+                  typeTarget.innerHTML += token.charAt(charIdx);
+                  charIdx++;
+                  setTimeout(typeChars, 2);
+                } else {
+                  i++;
+                  setTimeout(typeWriter, 5);
+                }
+              }
+              typeChars();
+            }
+          } else {
+            document.getElementById('cursor').style.display = 'none';
+          }
+        }
+        typeWriter();
+
       } catch (err) {
-        loading.style.display = "none";
-        content.style.display = "block";
-        content.innerHTML = "<span class='muted' style='color: var(--danger)'>Error contacting RAG agent. Please check console.</span>";
-        console.error(err);
+        answerDiv.innerHTML = '<span style="color: var(--danger-red);">Error connecting to agent.</span>';
       } finally {
         btn.innerText = origText;
-        btn.disabled = false;
+        btn.style.opacity = '1';
       }
+    }
+    
+    function copyAnswer() {
+      const text = document.getElementById('ai-answer').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Answer copied to clipboard');
     }
   </script>
 </body>

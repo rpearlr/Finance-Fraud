@@ -963,17 +963,17 @@
             <div class="divider">or continue with email</div>
 
             <div class="field">
-              <label class="field-label">Email address</label>
+              <label class="field-label">Username or Email</label>
               <div class="field-wrap">
                 <svg class="field-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="1.8">
-                  <rect x="2" y="4" width="20" height="16" rx="2" />
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
                 </svg>
-                <input type="email" class="field-input" id="login-email" placeholder="you@company.com"
-                  autocomplete="email">
+                <input type="text" class="field-input" id="login-email" placeholder="admin or you@company.com"
+                  autocomplete="username">
               </div>
-              <div class="field-error" id="login-email-err">Please enter a valid email address.</div>
+              <div class="field-error" id="login-email-err">Please enter your username or email.</div>
             </div>
 
             <div class="field">
@@ -1015,23 +1015,18 @@
                 <div class="form-sub">Set up your FinRisk AI workspace in seconds.</div>
               </div>
 
-              <div class="field-row">
-                <div class="field" style="margin-bottom:0;">
-                  <label class="field-label">First name</label>
-                  <div class="field-wrap">
-                    <input type="text" class="field-input no-icon" id="reg-first" placeholder="Arjun"
-                      autocomplete="given-name">
-                  </div>
-                  <div class="field-error" id="reg-first-err">Required.</div>
+              <div class="field" style="margin-top:16px;">
+                <label class="field-label">Username</label>
+                <div class="field-wrap">
+                  <svg class="field-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.8">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input type="text" class="field-input" id="reg-username" placeholder="arjun_sharma"
+                    autocomplete="username">
                 </div>
-                <div class="field" style="margin-bottom:0;">
-                  <label class="field-label">Last name</label>
-                  <div class="field-wrap">
-                    <input type="text" class="field-input no-icon" id="reg-last" placeholder="Sharma"
-                      autocomplete="family-name">
-                  </div>
-                  <div class="field-error" id="reg-last-err">Required.</div>
-                </div>
+                <div class="field-error" id="reg-user-err">Username is required.</div>
               </div>
 
               <div class="field" style="margin-top:16px;">
@@ -1046,39 +1041,6 @@
                     autocomplete="email">
                 </div>
                 <div class="field-error" id="reg-email-err">Please enter a valid email address.</div>
-              </div>
-
-              <div class="field">
-                <label class="field-label">Organization</label>
-                <div class="field-wrap">
-                  <svg class="field-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="1.8">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                  <input type="text" class="field-input" id="reg-org" placeholder="HDFC Bank, Zerodha…"
-                    autocomplete="organization">
-                </div>
-                <div class="field-error" id="reg-org-err">Required.</div>
-              </div>
-
-              <div class="field" style="margin-bottom:8px;">
-                <label class="field-label">Role</label>
-                <div class="role-grid" id="role-grid">
-                  <div class="role-card selected" onclick="selectRole(this, 'analyst')">
-                    <div class="role-icon">📊</div>
-                    <div class="role-name">Analyst</div>
-                  </div>
-                  <div class="role-card" onclick="selectRole(this, 'risk-manager')">
-                    <div class="role-icon">🛡</div>
-                    <div class="role-name">Risk Mgr</div>
-                  </div>
-                  <div class="role-card" onclick="selectRole(this, 'compliance')">
-                    <div class="role-icon">⚖️</div>
-                    <div class="role-name">Compliance</div>
-                  </div>
-                </div>
-                <input type="hidden" id="reg-role" value="analyst">
               </div>
 
               <div class="field">
@@ -1154,7 +1116,10 @@
 
     <script>
       let activeTab = 'login';
-      let selectedRole = 'analyst';
+      let API_BASE = "";
+      if (API_BASE.endsWith('/')) {
+        API_BASE = API_BASE.slice(0, -1);
+      }
 
       /* ── Tab switching ── */
       function switchTab(tab) {
@@ -1164,14 +1129,6 @@
         document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
         document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
         clearErrors();
-      }
-
-      /* ── Role selection ── */
-      function selectRole(card, role) {
-        document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedRole = role;
-        document.getElementById('reg-role').value = role;
       }
 
       /* ── Password visibility ── */
@@ -1232,57 +1189,88 @@
       }
 
       /* ── Login ── */
-      function handleLogin() {
+      async function handleLogin() {
         clearErrors();
-        const email = document.getElementById('login-email').value.trim();
-        const pw = document.getElementById('login-password').value;
+        const username = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
         let valid = true;
 
-        if (!isValidEmail(email)) { showError('login-email', 'login-email-err'); valid = false; }
-        if (!pw) { showError('login-password', 'login-pw-err'); valid = false; }
+        if (!username) { showError('login-email', 'login-email-err'); valid = false; }
+        if (!password) { showError('login-password', 'login-pw-err'); valid = false; }
         if (!valid) return;
 
         const btn = document.getElementById('login-submit');
+        const originalText = btn.textContent;
         btn.textContent = 'Signing in…';
         btn.disabled = true;
 
-        // Simulate auth
-        setTimeout(() => {
-          btn.textContent = 'Sign In →';
+        try {
+          const response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            localStorage.setItem('finrisk_token', data.token);
+            localStorage.setItem('finrisk_user', data.username);
+            showToast('Login successful! Redirecting...', 'success');
+            setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+          } else {
+            showToast(data.detail || 'Login failed', 'error');
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+        } catch (err) {
+          showToast('Connection error. Please try again.', 'error');
+          btn.textContent = originalText;
           btn.disabled = false;
-          showToast('Redirecting to dashboard…', 'success');
-          setTimeout(() => { window.location.href = '/dashboard'; }, 1200);
-        }, 1400);
+        }
       }
 
       /* ── Register ── */
-      function handleRegister() {
+      async function handleRegister() {
         clearErrors();
-        const first = document.getElementById('reg-first').value.trim();
-        const last = document.getElementById('reg-last').value.trim();
+        const username = document.getElementById('reg-username').value.trim();
         const email = document.getElementById('reg-email').value.trim();
-        const org = document.getElementById('reg-org').value.trim();
-        const pw = document.getElementById('reg-password').value;
+        const password = document.getElementById('reg-password').value;
         const terms = document.getElementById('reg-terms').checked;
         let valid = true;
 
-        if (!first) { showError('reg-first', 'reg-first-err'); valid = false; }
-        if (!last) { showError('reg-last', 'reg-last-err'); valid = false; }
+        if (!username) { showError('reg-username', 'reg-user-err'); valid = false; }
         if (!isValidEmail(email)) { showError('reg-email', 'reg-email-err'); valid = false; }
-        if (!org) { showError('reg-org', 'reg-org-err'); valid = false; }
-        if (pw.length < 8) { showError('reg-password', 'reg-pw-err'); valid = false; }
-        if (!terms) { showToast('Please accept the Terms of Service to continue.'); return; }
+        if (password.length < 6) { showError('reg-password', 'reg-pw-err'); valid = false; }
+        if (!terms) { showToast('Please accept the Terms of Service.'); return; }
         if (!valid) return;
 
         const btn = document.getElementById('reg-submit');
         btn.textContent = 'Creating account…';
         btn.disabled = true;
 
-        setTimeout(() => {
-          document.getElementById('register-fields').style.display = 'none';
-          const s = document.getElementById('reg-success');
-          s.style.display = 'flex';
-        }, 1600);
+        try {
+          const response = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            document.getElementById('register-fields').style.display = 'none';
+            document.getElementById('reg-success').style.display = 'flex';
+          } else {
+            showToast(data.detail || 'Registration failed', 'error');
+            btn.textContent = 'Create Account →';
+            btn.disabled = false;
+          }
+        } catch (err) {
+          showToast('Connection error. Please try again.', 'error');
+          btn.textContent = 'Create Account →';
+          btn.disabled = false;
+        }
       }
 
       /* ── SSO ── */

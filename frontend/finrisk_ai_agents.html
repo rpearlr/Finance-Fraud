@@ -4,53 +4,130 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Agents | FinRisk AI Platform</title>
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="/static/index.css">
   <style>
-    .chat-panel {
-      flex: 1;
+    /* Agent specific styles */
+    .agent-layout {
       display: flex;
-      flex-direction: column;
+      gap: 24px;
+      height: calc(100vh - var(--th) - 100px);
     }
-    .right-panel {
-      width: 210px;
+    
+    .agent-selector {
+      width: 280px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-    }
-    .chat-input-row {
-      display: flex;
       gap: 12px;
-      margin-top: 20px;
     }
     
-    .tag-sql { background-color: #E6F1FB; color: #0C447C; }
-    .tag-rag { background-color: #EEEDFE; color: #3C3489; }
-    .tag-ml { background-color: rgba(29, 158, 117, 0.15); color: var(--brand-green); }
-    .tag-inv { background-color: rgba(239, 159, 39, 0.15); color: var(--amber); }
-    .tag-orch { background-color: var(--color-background-secondary); color: var(--color-text-secondary); }
-    
-    .suggestion {
-      padding: 8px 12px;
-      background-color: var(--color-background-secondary);
-      border-radius: var(--border-radius-md);
-      font-size: 11px;
-      color: var(--color-text-primary);
+    .agent-card {
+      background: var(--sur);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--bdr);
+      border-radius: var(--rlg);
+      padding: 16px;
       cursor: pointer;
-      margin-bottom: 8px;
-      border: 0.5px solid transparent;
-      transition: all 0.2s;
-    }
-    .suggestion:hover {
-      border-color: var(--color-border-secondary);
-      background-color: var(--color-background-primary);
+      transition: all 0.3s var(--ease);
+      position: relative;
+      overflow: hidden;
     }
     
-    /* Extra scrollable area for chat */
-    .chat-wrapper {
+    .agent-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: transparent;
+      transition: background 0.3s;
+    }
+    
+    .agent-card:hover {
+      background: var(--sur2);
+      border-color: var(--bdr2);
+      transform: translateX(4px);
+    }
+    
+    .agent-card.active {
+      background: var(--vdim);
+      border-color: var(--violet);
+      box-shadow: 0 4px 20px rgba(124, 109, 250, 0.1);
+    }
+    
+    .agent-card.active::before {
+      background: var(--violet);
+    }
+    
+    .agent-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    .agent-card.active .agent-icon {
+      background: var(--violet);
+      color: #fff;
+      box-shadow: 0 4px 15px var(--vglow);
+    }
+    
+    .chat-container {
       flex: 1;
-      overflow-y: auto;
-      padding-right: 12px;
+      background: var(--sur);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--bdr);
+      border-radius: var(--rxl);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .chat-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--bdr);
+      background: rgba(0,0,0,0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chat-input-area {
+      padding: 20px 24px;
+      background: rgba(0,0,0,0.2);
+      border-top: 1px solid var(--bdr);
+    }
+    
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--sur2);
+      border-radius: var(--rlg);
+      width: fit-content;
+      border-top-left-radius: 4px;
+      border: 1px solid var(--bdr2);
+      animation: msgIn 0.3s var(--ease);
+    }
+    
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--violet);
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
     }
   </style>
 </head>
@@ -65,11 +142,11 @@
         <span class="logo-name">FinRisk AI</span>
       </button>
     </div>
-    <div class="context">Multi-Agent System</div>
+    <div class="context">Multi-Agent Swarm</div>
     <div class="topbar-right">
       <div class="status-dot">
-        <div class="dot"></div>
-        Operational
+        <div class="dot" style="background: var(--violet); box-shadow: 0 0 0 0 rgba(124, 109, 250, 0.4);"></div>
+        Agents Online
       </div>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -108,174 +185,246 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span class="sidebar-item-text">Model Outputs</span>
       </a>
+
+      <div class="sidebar-footer">
+        <div class="profile-section">
+          <div class="profile-avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="user-profile-name">Admin</div>
+            <div class="profile-role">Risk Manager</div>
+          </div>
+        </div>
+        <a href="#" class="sidebar-item logout-item" onclick="handleLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="sidebar-item-text">Logout</span>
+        </a>
+      </div>
     </div>
 
     <div class="main">
-      <div style="display: flex; gap: 24px; height: 100%;">
+      <h1 class="page-title stagger-1" style="margin-bottom: 24px;">AI Co-Pilots</h1>
+
+      <div class="agent-layout stagger-2">
         
-        <!-- Left: Chat Panel -->
-        <div class="chat-panel">
-          <div>
-            <h1 class="page-title" style="margin-bottom: 4px;">AI Assistants</h1>
-            <div class="muted mb-4" style="font-size: 12px;">Dedicated specialist agents for different use cases.</div>
+        <!-- Left Panel: Agents -->
+        <div class="agent-selector">
+          
+          <div class="agent-card active" onclick="selectAgent('fraud_expert_agent', this)">
+            <div class="agent-icon" style="background: var(--ddim); color: var(--danger-red);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            </div>
+            <div class="weight-600 mb-1" style="font-size: 14px;">Fraud Expert</div>
+            <div class="muted" style="font-size: 11px; margin-bottom: 8px;">Analyzes transaction anomalies.</div>
+            <span class="agent-tag tag-ml">XGBoost API</span>
+          </div>
+
+          <div class="agent-card" onclick="selectAgent('investment_advice_agent', this)">
+            <div class="agent-icon" style="background: var(--adim); color: var(--amber);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="weight-600 mb-1" style="font-size: 14px;">Portfolio Advisor</div>
+            <div class="muted" style="font-size: 11px; margin-bottom: 8px;">Queries financial metrics.</div>
+            <span class="agent-tag tag-sql">SQLite • SQLAgent</span>
+          </div>
+
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-container">
+          
+          <div class="chat-header">
+            <div>
+              <div class="weight-600" id="chat-title" style="font-size: 15px;">Fraud Expert</div>
+              <div class="muted" id="chat-subtitle" style="font-size: 12px; font-family: var(--fm);">Connected to XGBoost API</div>
+            </div>
+            <button class="btn" style="padding: 6px 12px; font-size: 12px; border-radius: var(--rpill); background: transparent;" onclick="clearChat()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Clear
+            </button>
+          </div>
+
+          <div class="chat-wrapper" id="chat-wrapper">
+            <div class="chat-window" id="chat-window">
+              <!-- System Greeting -->
+              <div class="msg" style="align-self: center; margin-bottom: 24px; animation: slideDown 0.4s var(--ease);">
+                <div style="background: rgba(0,0,0,0.1); border: 1px solid var(--bdr2); padding: 8px 16px; border-radius: var(--rpill); font-size: 11px; font-family: var(--fm); color: var(--tx3);">
+                  Chat session started • <span id="time-now"></span>
+                </div>
+              </div>
+              
+              <div class="msg ai">
+                <div class="avatar avatar-ai" id="ai-avatar-current" style="background: var(--danger-red); color: #fff;">F</div>
+                <div>
+                  <div class="bubble">Hello! I'm the FinRisk Fraud Expert. How can I assist you with anomaly detection today?</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-area">
+            <!-- Suggestions -->
+            <div id="suggestions-container" class="flex-row mb-4" style="gap: 8px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px;">
+              <button class="chip" onclick="applyQuery('Is transaction TX-94821 fraudulent?')">Check TX-94821 risk</button>
+              <button class="chip" onclick="applyQuery('What are the most important features for fraud?')">Fraud features</button>
+            </div>
             
-            <!-- Tabs -->
-            <div style="display: flex; gap: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--color-border-secondary); padding-bottom: 8px;">
-              <div id="tab-fraud" class="tab-item" style="cursor: pointer; font-weight: 500; font-size: 14px; padding-bottom: 6px; border-bottom: 2px solid var(--brand-green); color: var(--brand-green);" onclick="switchTab('fraud_expert_agent')">Fraud Expert</div>
-              <div id="tab-invest" class="tab-item" style="cursor: pointer; font-weight: 500; font-size: 14px; padding-bottom: 6px; border-bottom: 2px solid transparent; color: var(--color-text-secondary);" onclick="switchTab('investment_agent')">Investment Advisor</div>
+            <div class="flex-row" style="gap: 12px;">
+              <input type="text" id="chat-input" class="input-field" style="border-radius: var(--rpill); padding: 14px 24px;" placeholder="Message the Orchestrator..." onkeypress="handleChatKey(event)">
+              <button class="btn btn-primary" style="border-radius: 50%; width: 48px; height: 48px; padding: 0; flex-shrink: 0;" onclick="sendChatMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
             </div>
-          </div>
-          
-          <div class="card chat-wrapper" style="display: flex; flex-direction: column;">
-            <div class="chat-window" id="chatWindow">
-               <!-- Messages will appear here -->
-            </div>
-          </div>
-          
-          <!-- Input -->
-          <div class="chat-input-row">
-            <input type="text" class="input-field" id="chatInput" placeholder="Ask a question..." style="font-size: 14px; padding: 12px 16px;">
-            <button class="btn btn-primary" style="padding: 0 24px; font-size: 14px;" onclick="handleChat()">Send ↗</button>
-          </div>
-        </div>
-
-        <!-- Right: Panel -->
-        <div class="right-panel">
-          <div class="card" style="flex: 1;">
-            <h3 class="weight-500 mb-4" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;">Suggested Queries</h3>
-            <div id="suggestions-fraud">
-              <div class="suggestion" onclick="suggest('Why did TX-94821 score 0.94?')">Why did TX-94821 score 0.94?</div>
-              <div class="suggestion" onclick="suggest('Explain how amount_zscore impacts the model.')">Explain how amount_zscore impacts the model.</div>
-            </div>
-            <div id="suggestions-invest" style="display: none;">
-              <div class="suggestion" onclick="suggest('What is a good asset allocation for a moderate risk profile?')">What is a good asset allocation for a moderate risk profile?</div>
-              <div class="suggestion" onclick="suggest('How should I adjust my portfolio for high inflation?')">How should I adjust my portfolio for high inflation?</div>
-            </div>
+            <div class="muted mt-2" style="font-size: 10px; text-align: center;">AI can make mistakes. Verify important financial data.</div>
           </div>
 
         </div>
-
       </div>
+
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js?v=2"></script>
   <script>
-    let currentAgentContext = 'fraud_expert_agent';
+    document.getElementById('time-now').innerText = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    let currentAgent = 'fraud_expert_agent';
 
-    function switchTab(agent) {
-      currentAgentContext = agent;
-      document.getElementById('chatWindow').innerHTML = '';
+    const agentData = {
+      'fraud_expert_agent': { name: 'Fraud Expert', sub: 'Connected to XGBoost API', avatar: 'F', color: 'var(--danger-red)' },
+      'investment_advice_agent': { name: 'Portfolio Advisor', sub: 'Connected to SQL Agent', avatar: 'P', color: 'var(--amber)' }
+    };
+
+    function selectAgent(agentId, elem) {
+      currentAgent = agentId;
+      document.querySelectorAll('.agent-card').forEach(c => c.classList.remove('active'));
+      elem.classList.add('active');
       
-      const tabFraud = document.getElementById('tab-fraud');
-      const tabInvest = document.getElementById('tab-invest');
-      const suggFraud = document.getElementById('suggestions-fraud');
-      const suggInvest = document.getElementById('suggestions-invest');
+      const data = agentData[agentId];
+      document.getElementById('chat-title').innerText = data.name;
+      document.getElementById('chat-subtitle').innerText = data.sub;
+      document.getElementById('chat-input').placeholder = `Message ${data.name}...`;
+      document.getElementById('ai-avatar-current').innerText = data.avatar;
+      document.getElementById('ai-avatar-current').style.background = data.color;
       
-      if (agent === 'fraud_expert_agent') {
-        tabFraud.style.borderBottom = "2px solid var(--brand-green)";
-        tabFraud.style.color = "var(--brand-green)";
-        tabInvest.style.borderBottom = "2px solid transparent";
-        tabInvest.style.color = "var(--color-text-secondary)";
-        suggFraud.style.display = "block";
-        suggInvest.style.display = "none";
-      } else {
-        tabInvest.style.borderBottom = "2px solid var(--amber)";
-        tabInvest.style.color = "var(--amber)";
-        tabFraud.style.borderBottom = "2px solid transparent";
-        tabFraud.style.color = "var(--color-text-secondary)";
-        suggFraud.style.display = "none";
-        suggInvest.style.display = "block";
+      // Update suggestions based on agent
+      const sugContainer = document.getElementById('suggestions-container');
+      if(agentId === 'fraud_expert_agent') {
+        sugContainer.innerHTML = `
+          <button class="chip" onclick="applyQuery('Is transaction TX-94821 fraudulent?')">Check TX-94821 risk</button>
+          <button class="chip" onclick="applyQuery('What are the most important features for fraud?')">Fraud features</button>
+        `;
+      } else if (agentId === 'investment_advice_agent') {
+        sugContainer.innerHTML = `
+          <button class="chip" onclick="applyQuery('Show me the top 3 tech clients by revenue.')">Top Tech Clients</button>
+          <button class="chip" onclick="applyQuery('What is the total AUM of the portfolio?')">Total AUM</button>
+        `;
       }
     }
 
-    function escapeHtml(unsafe) {
-      if (!unsafe) return "";
-      return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    function applyQuery(text) {
+      document.getElementById('chat-input').value = text;
+      document.getElementById('chat-input').focus();
     }
 
-    async function handleChat() {
-      const input = document.getElementById('chatInput');
-      const q = input.value;
-      if(!q) return;
-      
-      const chatWindow = document.getElementById('chatWindow');
-      
-      // Append User Message
-      const userMsgHtml = `
-      <div class="msg user" style="margin-top: 16px;">
-        <div class="avatar avatar-u">U</div>
-        <div class="bubble">${q}</div>
-      </div>`;
-      chatWindow.insertAdjacentHTML('beforeend', userMsgHtml);
-      
-      input.value = '';
-      
-      // Scroll to bottom
-      const wrapper = document.querySelector('.chat-wrapper');
-      wrapper.scrollTop = wrapper.scrollHeight;
-      
-      // Temporary loading message
-      const loadingId = 'loading-' + Date.now();
-      const loadingMsgHtml = `
-      <div id="${loadingId}" class="msg bot" style="margin-top: 16px;">
-        <div class="avatar avatar-ai">AI</div>
-        <div>
-          <div class="bubble" style="opacity: 0.7;">Thinking...</div>
+    function handleChatKey(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    function clearChat() {
+      const cw = document.getElementById('chat-window');
+      cw.innerHTML = `
+        <div class="msg" style="align-self: center; margin-bottom: 24px; animation: slideDown 0.4s var(--ease);">
+          <div style="background: rgba(0,0,0,0.1); border: 1px solid var(--bdr2); padding: 8px 16px; border-radius: var(--rpill); font-size: 11px; font-family: var(--fm); color: var(--tx3);">
+            Chat cleared • ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          </div>
         </div>
-      </div>`;
-      chatWindow.insertAdjacentHTML('beforeend', loadingMsgHtml);
-      wrapper.scrollTop = wrapper.scrollHeight;
+      `;
+    }
+
+    async function sendChatMessage() {
+      const inp = document.getElementById('chat-input');
+      const text = inp.value.trim();
+      if (!text) return;
+      inp.value = '';
+
+      const cw = document.getElementById('chat-window');
+      const wrap = document.getElementById('chat-wrapper');
+
+      // User msg
+      const uMsg = document.createElement('div');
+      uMsg.className = 'msg user';
+      uMsg.innerHTML = `
+        <div class="avatar avatar-u">U</div>
+        <div><div class="bubble">${text}</div></div>
+      `;
+      cw.appendChild(uMsg);
+      wrap.scrollTop = wrap.scrollHeight;
+
+      // Typing indicator
+      const typingId = 'typing-' + Date.now();
+      const typingMsg = document.createElement('div');
+      typingMsg.className = 'msg ai';
+      typingMsg.id = typingId;
+      const data = agentData[currentAgent];
+      typingMsg.innerHTML = `
+        <div class="avatar avatar-ai" style="background: ${data.color}; color: #fff;">${data.avatar}</div>
+        <div>
+          <div class="typing-indicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      `;
+      cw.appendChild(typingMsg);
+      wrap.scrollTop = wrap.scrollHeight;
+
+      const startTime = Date.now();
 
       try {
-        const result = await sendPrompt(q, currentAgentContext);
+        const result = await sendPrompt(text, currentAgent);
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
         
-        let tagClass = 'tag-orch';
-        let tagName = 'Orchestrator Agent';
-        if (result.agent_used === 'sql_agent') { tagClass = 'tag-sql'; tagName = 'SQL Data Analyst'; }
-        if (result.agent_used === 'rag_agent') { tagClass = 'tag-rag'; tagName = 'Regulatory RAG Agent'; }
-        if (result.agent_used === 'fraud_expert_agent') { tagClass = 'tag-ml'; tagName = 'ML Expert Agent'; }
-        if (result.agent_used === 'investment_agent') { tagClass = 'tag-inv'; tagName = 'Investment Advisor'; }
+        document.getElementById(typingId).remove();
 
-        // Remove loading
-        document.getElementById(loadingId).remove();
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'msg ai';
         
-        // Append Bot Message
-        const botMsgHtml = `
-        <div class="msg bot" style="margin-top: 16px;">
-          <div class="avatar avatar-ai">AI</div>
+        // Convert markdown-like syntax to HTML simply
+        let formattedAns = result.answer
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\n/g, '<br>');
+          
+        let metadataHtml = '';
+        if(currentAgent === 'orchestrator' && result.agent_used) {
+           metadataHtml = `<div class="latency">Routed via: ${result.agent_used} • Latency: ${elapsed}s</div>`;
+        } else {
+           metadataHtml = `<div class="latency">Latency: ${elapsed}s</div>`;
+        }
+
+        aiMsg.innerHTML = `
+          <div class="avatar avatar-ai" style="background: ${data.color}; color: #fff;">${data.avatar}</div>
           <div>
-            <span class="agent-tag ${tagClass}">${tagName}</span>
-            <div class="bubble">${escapeHtml(result.answer).replace(/\\n/g, '<br>').replace(/\n/g, '<br>')}</div>
-            <span class="latency">${result.latency_ms}ms &middot; Answered by ${result.agent_used}</span>
+            <div class="bubble">${formattedAns}</div>
+            ${metadataHtml}
           </div>
-        </div>`;
-        chatWindow.insertAdjacentHTML('beforeend', botMsgHtml);
-        wrapper.scrollTop = wrapper.scrollHeight;
-        
+        `;
+        cw.appendChild(aiMsg);
       } catch (err) {
-        console.error(err);
-        const loadingEl = document.getElementById(loadingId);
-        if (loadingEl) loadingEl.remove();
-        alert("Failed to get response from AI agent. Check console.");
+        document.getElementById(typingId).remove();
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'msg ai';
+        aiMsg.innerHTML = `
+          <div class="avatar avatar-ai" style="background: var(--danger-red); color: #fff;">!</div>
+          <div><div class="bubble" style="border-color: var(--danger-red);">Error connecting to ${currentAgent}.</div></div>
+        `;
+        cw.appendChild(aiMsg);
       }
+
+      wrap.scrollTop = wrap.scrollHeight;
     }
-    
-    function suggest(q) {
-      document.getElementById('chatInput').value = q;
-    }
-    
-    // Add enter key support
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById('chatInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') handleChat();
-      });
-    });
   </script>
 </body>
 </html>

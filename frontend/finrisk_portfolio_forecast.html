@@ -4,68 +4,96 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio Forecast | FinRisk AI Platform</title>
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="/static/index.css">
   <style>
     .forecast-card {
       padding: 24px;
     }
+    .kpi-sparkline {
+      width: 100%;
+      height: 32px;
+      margin-top: 8px;
+    }
+    .kpi-sparkline svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .spark-path {
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
     .grid-lines line {
-      stroke: var(--color-border-tertiary);
+      stroke: var(--color-border-secondary);
       stroke-width: 0.5px;
+      stroke-dasharray: 4, 4;
     }
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--color-text-secondary);
     }
     .legend-color {
-      width: 12px;
+      width: 16px;
       height: 4px;
       border-radius: 2px;
     }
     .legend-rect {
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-      background-color: rgba(127, 119, 221, 0.2);
-    }
-    
-    .pill-tabs {
-      display: inline-flex;
-      background-color: var(--color-background-secondary);
-      border-radius: var(--border-radius-pill);
-      padding: 4px;
-    }
-    .pill-btn {
-      padding: 4px 12px;
-      border-radius: var(--border-radius-pill);
-      font-size: 12px;
-      color: var(--color-text-secondary);
-      cursor: pointer;
-      border: none;
-      background: transparent;
-    }
-    .pill-btn.active {
-      background-color: var(--color-background-primary);
-      color: var(--color-text-primary);
-      font-weight: 500;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      background-color: var(--vglow);
+      border: 1px dashed var(--violet);
     }
     
     .alloc-item {
       display: flex;
       align-items: center;
-      margin-bottom: 12px;
-      font-size: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
     }
     .alloc-label {
-      width: 60px;
+      width: 80px;
+      font-weight: 500;
     }
     .alloc-val {
-      width: 40px;
+      width: 50px;
       text-align: right;
+      font-family: var(--fm);
+      font-size: 12px;
+      color: var(--tx2);
+    }
+    
+    .drop-zone {
+      border: 2px dashed var(--color-border-secondary);
+      border-radius: var(--rlg);
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(0,0,0,0.1);
+      transition: all 0.3s var(--ease);
+    }
+    
+    .drop-zone:hover {
+      border-color: var(--brand);
+      background: var(--bdim);
+      transform: scale(1.02);
+    }
+    
+    /* Animation for SVG path drawing */
+    .path-draw {
+      stroke-dasharray: 1000;
+      stroke-dashoffset: 1000;
+      animation: drawPath 2s ease forwards;
+    }
+    
+    @keyframes drawPath {
+      to { stroke-dashoffset: 0; }
     }
   </style>
 </head>
@@ -123,43 +151,65 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span class="sidebar-item-text">Model Outputs</span>
       </a>
+
+      <div class="sidebar-footer">
+        <div class="profile-section">
+          <div class="profile-avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="user-profile-name">Admin</div>
+            <div class="profile-role">Risk Manager</div>
+          </div>
+        </div>
+        <a href="#" class="sidebar-item logout-item" onclick="handleLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="sidebar-item-text">Logout</span>
+        </a>
+      </div>
     </div>
 
     <div class="main">
-      <h1 class="page-title">Portfolio Forecast</h1>
+      <h1 class="page-title stagger-1">Portfolio Forecast Engine</h1>
 
-      <div class="grid-4">
+      <div class="grid-4 stagger-2">
         <div class="card kpi-card">
           <div class="kpi-label">Total AUM</div>
           <div class="kpi-value-row">
             <span id="kpi-aum" class="kpi-value">₹482 Cr</span>
+            <span class="delta positive">↑ 1.1%</span>
           </div>
+          <div class="kpi-sparkline" id="spark-port"></div>
         </div>
         <div class="card kpi-card">
           <div id="kpi-forecast-label" class="kpi-label">30-day forecast</div>
           <div class="kpi-value-row">
             <span id="kpi-forecast" class="kpi-value">₹501 Cr</span>
-            <span id="kpi-forecast-delta" class="delta positive">+3.9%</span>
+            <span id="kpi-forecast-delta" class="delta positive">↑ 3.9%</span>
           </div>
+          <div class="kpi-sparkline" id="spark-forecast"></div>
         </div>
         <div class="card kpi-card">
           <div class="kpi-label">Sharpe ratio</div>
           <div class="kpi-value-row">
-            <span class="kpi-value">1.42</span>
+            <span id="kpi-sharpe" class="kpi-value">1.42</span>
+            <span class="delta positive">↑ 0.05</span>
           </div>
+          <div class="kpi-sparkline" id="spark-sharpe"></div>
         </div>
         <div class="card kpi-card">
           <div class="kpi-label">Max drawdown</div>
           <div class="kpi-value-row">
-            <span class="kpi-value" style="color: var(--danger-red);">-4.3%</span>
-            <span class="muted" style="font-size: 11px; font-weight: normal;">Within tolerance</span>
+            <span id="kpi-drawdown" class="kpi-value" style="color: var(--danger-red);">-4.3%</span>
+            <span class="delta negative">↓ 0.2%</span>
           </div>
+          <div class="kpi-sparkline" id="spark-drawdown"></div>
         </div>
       </div>
 
       <!-- Line Chart Card -->
-      <div class="card forecast-card mb-4" style="display: flex; flex-direction: column;">
-        <div class="flex-row" style="justify-content: space-between; margin-bottom: 20px;">
+      <div class="card forecast-card mb-4 stagger-3" style="display: flex; flex-direction: column;">
+        <div class="flex-row" style="justify-content: space-between; margin-bottom: 24px;">
           <h3 class="weight-500">Prophet Model Forecast (INR Cr)</h3>
           
           <div class="pill-tabs">
@@ -169,7 +219,7 @@
           </div>
         </div>
 
-        <div style="height: 300px; width: 100%; position: relative;">
+        <div style="height: 320px; width: 100%; position: relative;">
           <svg id="forecastSVG" viewBox="0 0 600 150" preserveAspectRatio="none" style="width: 100%; height: 100%;">
             <!-- Grid Lines -->
             <g class="grid-lines">
@@ -178,35 +228,34 @@
               <line x1="0" y1="125" x2="600" y2="125" />
             </g>
             
-            <!-- Dynamic elements will be inserted here -->
             <g id="svg-content">
               <!-- Handoff line -->
-              <line x1="420" y1="10" x2="420" y2="140" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4,4" />
-              <text x="425" y="140" fill="var(--color-text-secondary)" font-size="10" font-family="var(--font-sans)">forecast &rarr;</text>
+              <line x1="420" y1="10" x2="420" y2="140" stroke="var(--brand-green)" stroke-width="1" stroke-dasharray="2,2" />
+              <text x="428" y="140" fill="var(--color-text-secondary)" font-size="9" font-family="var(--fm)" text-transform="uppercase" letter-spacing="1px">Forecast &rarr;</text>
               
               <!-- Confidence Interval Band -->
-              <path d="M420,60 C480,50 540,20 600,10 L600,110 C540,115 480,90 420,60 Z" fill="var(--purple)" fill-opacity="0.08" />
+              <path class="path-draw" d="M420,60 C480,50 540,20 600,10 L600,110 C540,115 480,90 420,60 Z" fill="var(--violet)" fill-opacity="0.1" />
               
               <!-- Historical Path (Green) -->
-              <path d="M0,120 C100,110 200,130 300,90 C360,66 380,70 420,60" fill="none" stroke="var(--brand-green)" stroke-width="2" />
+              <path class="path-draw" d="M0,120 C100,110 200,130 300,90 C360,66 380,70 420,60" fill="none" stroke="var(--brand-green)" stroke-width="2.5" />
               
               <!-- Forecast Path (Purple) -->
-              <path d="M420,60 C480,55 540,40 600,30" fill="none" stroke="var(--purple)" stroke-width="2" stroke-dasharray="6,4" />
+              <path class="path-draw" d="M420,60 C480,55 540,40 600,30" fill="none" stroke="var(--violet)" stroke-width="3" stroke-dasharray="6,4" />
               
               <!-- Handoff Dot -->
-              <circle cx="420" cy="60" r="4" fill="var(--brand-green)" />
+              <circle cx="420" cy="60" r="5" fill="var(--sur)" stroke="var(--brand-green)" stroke-width="2" />
             </g>
           </svg>
         </div>
 
         <!-- Legend -->
-        <div class="flex-row" style="margin-top: 16px; justify-content: center; gap: 20px;">
+        <div class="flex-row" style="margin-top: 24px; justify-content: center; gap: 32px;">
           <div class="legend-item">
             <div class="legend-color" style="background-color: var(--brand-green);"></div>
             Actual
           </div>
           <div class="legend-item">
-            <div class="legend-color" style="background-color: var(--purple); border-bottom: 2px dashed #fff;"></div>
+            <div class="legend-color" style="background-color: var(--violet); border-bottom: 2px dashed #fff;"></div>
             Forecast
           </div>
           <div class="legend-item">
@@ -217,56 +266,89 @@
       </div>
 
       <!-- Bottom Row -->
-      <div class="grid-1-16">
+      <div class="grid-1-16 stagger-4">
         <!-- Custom Upload -->
         <div class="card">
           <h3 class="mb-4 weight-500">Custom Data Forecast</h3>
           <p class="muted mb-4" style="font-size: 13px;">Upload your own historical portfolio values (CSV: date, value) to generate a dynamic Holt-Winters forecast.</p>
           
-          <div id="drop-zone" style="border: 1px dashed var(--color-border-secondary); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: background 0.2s;">
-            <div class="muted mb-2">Drag & Drop CSV here or Click to Upload</div>
+          <div id="drop-zone" class="drop-zone">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" style="margin-bottom: 12px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <div class="weight-500 mb-2">Drag & Drop CSV</div>
+            <div class="muted mb-4" style="font-size: 11px;">or Click to Upload</div>
             <input type="file" id="csv-upload" accept=".csv" style="display: none;">
-            <button class="btn btn-primary" onclick="document.getElementById('csv-upload').click()">Browse Files</button>
+            <button class="btn btn-primary" style="font-size: 12px; padding: 6px 16px;" onclick="document.getElementById('csv-upload').click(); event.stopPropagation();">Browse Files</button>
           </div>
           
           <div id="upload-status" class="mt-4" style="font-size: 13px; font-weight: 500;"></div>
         </div>
 
-        <!-- Asset Allocation -->
+        <!-- Constituent Holdings -->
         <div class="card">
-          <h3 class="mb-4 weight-500">Asset Allocation</h3>
+          <h3 class="mb-4 weight-500">Top Holdings</h3>
           
           <div class="alloc-item">
-            <div class="alloc-label">Equity</div>
-            <div class="bar-track"><div class="bar-fill" style="width: 75.0%; background-color: var(--brand-green);"></div></div>
-            <div class="alloc-val">75.0%</div>
+            <div class="alloc-label" style="width: 90px;">HDFCBANK</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 18.2%; background: linear-gradient(90deg, var(--bdark), var(--brand));"></div></div>
+            <div class="alloc-val">18.2%</div>
           </div>
           <div class="alloc-item">
-            <div class="alloc-label">Debt</div>
-            <div class="bar-track"><div class="bar-fill" style="width: 15.0%; background-color: var(--purple);"></div></div>
-            <div class="alloc-val">15.0%</div>
+            <div class="alloc-label" style="width: 90px;">INFY</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 14.7%; background: linear-gradient(90deg, #6253df, var(--violet));"></div></div>
+            <div class="alloc-val">14.7%</div>
           </div>
           <div class="alloc-item">
-            <div class="alloc-label">Alternatives</div>
-            <div class="bar-track"><div class="bar-fill" style="width: 5.0%; background-color: var(--amber);"></div></div>
-            <div class="alloc-val">5.0%</div>
+            <div class="alloc-label" style="width: 90px;">TCS</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 12.3%; background: linear-gradient(90deg, #d8890e, var(--amber));"></div></div>
+            <div class="alloc-val">12.3%</div>
           </div>
           <div class="alloc-item">
-            <div class="alloc-label">Cash</div>
-            <div class="bar-track"><div class="bar-fill" style="width: 5.0%; background-color: var(--color-border-secondary);"></div></div>
-            <div class="alloc-val">5.0%</div>
+            <div class="alloc-label" style="width: 90px;">RELIANCE</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 10.8%; background: linear-gradient(90deg, #0f766e, var(--brand-green));"></div></div>
+            <div class="alloc-val">10.8%</div>
           </div>
-          
+          <div class="alloc-item">
+            <div class="alloc-label" style="width: 90px;">ICICIBANK</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 9.4%; background: linear-gradient(90deg, #b91c1c, var(--danger-red));"></div></div>
+            <div class="alloc-val">9.4%</div>
+          </div>
+          <div class="alloc-item">
+            <div class="alloc-label" style="width: 90px;">Cash</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 34.6%; background: linear-gradient(90deg, #555, #888);"></div></div>
+            <div class="alloc-val">34.6%</div>
+          </div>
         </div>
       </div>
 
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js?v=2"></script>
   <script>
     let currentFile = null;
     let currentDays = 30;
+
+    async function fetchDefaultForecast(days) {
+      try {
+        const res = await fetch(`${API_BASE}/forecast/portfolio?days=${days}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('finrisk_token')}` }
+        });
+        const result = await res.json();
+        if (result && result.data) {
+          renderForecastChart(result);
+        }
+      } catch (e) {
+        console.error("Error fetching default portfolio forecast", e);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      fetchDefaultForecast(currentDays);
+    });
 
     // Handle Tabs
     const tabs = document.querySelectorAll('.pill-btn');
@@ -277,6 +359,8 @@
         currentDays = parseInt(e.target.innerText.replace('d', ''));
         if (currentFile) {
           await processFile(currentFile, currentDays);
+        } else {
+          await fetchDefaultForecast(currentDays);
         }
       });
     });
@@ -292,11 +376,23 @@
       }
     });
 
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = 'var(--color-background-primary)'; });
-    dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = 'transparent'; });
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    dropZone.addEventListener('dragover', (e) => { 
+      e.preventDefault(); 
+      dropZone.style.borderColor = 'var(--brand)';
+      dropZone.style.background = 'var(--bdim)';
+    });
+    dropZone.addEventListener('dragleave', () => { 
+      dropZone.style.borderColor = 'var(--bdr2)';
+      dropZone.style.background = 'rgba(0,0,0,0.1)';
+    });
     dropZone.addEventListener('drop', async (e) => {
       e.preventDefault();
-      dropZone.style.backgroundColor = 'transparent';
+      dropZone.style.borderColor = 'var(--bdr2)';
+      dropZone.style.background = 'rgba(0,0,0,0.1)';
       if(e.dataTransfer.files.length > 0) {
         currentFile = e.dataTransfer.files[0];
         await processFile(currentFile, currentDays);
@@ -304,21 +400,23 @@
     });
 
     async function processFile(file, days) {
-      document.getElementById('upload-status').innerText = `Training Holt-Winters model on ${file.name}...`;
-      document.getElementById('upload-status').style.color = "var(--color-text-primary)";
+      const statusEl = document.getElementById('upload-status');
+      statusEl.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">↻</span> Training Holt-Winters model...';
+      statusEl.style.color = "var(--tx)";
       
       const result = await uploadPortfolioData(file, days);
       if (result && result.data) {
-        document.getElementById('upload-status').innerText = `Successfully trained and forecasted ${days} days!`;
-        document.getElementById('upload-status').style.color = "var(--brand-green)";
-        renderForecastChart(result.data);
+        statusEl.innerText = `Successfully trained and forecasted ${days} days!`;
+        statusEl.style.color = "var(--brand-green)";
+        renderForecastChart(result);
       } else {
-        document.getElementById('upload-status').innerText = `Failed to generate forecast.`;
-        document.getElementById('upload-status').style.color = "var(--danger-red)";
+        statusEl.innerText = `Failed to generate forecast.`;
+        statusEl.style.color = "var(--danger-red)";
       }
     }
 
-    function renderForecastChart(data) {
+    function renderForecastChart(result) {
+      const data = result.data;
       if (!data || data.length === 0) return;
       
       const svgW = 600;
@@ -332,8 +430,6 @@
       
       const mapX = (index) => (index / (data.length - 1)) * svgW;
       
-      let histPath = "M";
-      let forePath = "M";
       let ciPathUpper = "M";
       let ciPathLower = "L";
       
@@ -369,13 +465,14 @@
       const ciPathFull = ciPathUpper + " L " + lowerPoints.join(" L ") + " Z";
       
       const svgContent = document.getElementById('svg-content');
+      // Re-render SVG elements to re-trigger path-draw animations
       svgContent.innerHTML = `
-        <line x1="${handoffX}" y1="0" x2="${handoffX}" y2="${svgH}" stroke="var(--color-border-secondary)" stroke-width="1" stroke-dasharray="4,4" />
-        <text x="${handoffX + 5}" y="${svgH - 10}" fill="var(--color-text-secondary)" font-size="10" font-family="var(--font-sans)">forecast &rarr;</text>
-        <path d="${ciPathFull}" fill="var(--purple)" fill-opacity="0.08" />
-        <path d="M${histPoints.join(" L")}" fill="none" stroke="var(--brand-green)" stroke-width="2" />
-        <path d="M${forePoints.join(" L")}" fill="none" stroke="var(--purple)" stroke-width="2" stroke-dasharray="6,4" />
-        <circle cx="${handoffX}" cy="${handoffY}" r="4" fill="var(--brand-green)" />
+        <line x1="${handoffX}" y1="0" x2="${handoffX}" y2="${svgH}" stroke="var(--brand-green)" stroke-width="1" stroke-dasharray="2,2" />
+        <text x="${handoffX + 8}" y="${svgH - 10}" fill="var(--color-text-secondary)" font-size="9" font-family="var(--fm)" text-transform="uppercase" letter-spacing="1px">Forecast &rarr;</text>
+        <path class="path-draw" d="${ciPathFull}" fill="var(--violet)" fill-opacity="0.1" />
+        <path class="path-draw" d="M${histPoints.join(" L")}" fill="none" stroke="var(--brand-green)" stroke-width="2.5" />
+        <path class="path-draw" d="M${forePoints.join(" L")}" fill="none" stroke="var(--violet)" stroke-width="3" stroke-dasharray="6,4" />
+        <circle cx="${handoffX}" cy="${handoffY}" r="5" fill="var(--sur)" stroke="var(--brand-green)" stroke-width="2" />
       `;
       
       // Update KPIs
@@ -399,6 +496,13 @@
         const deltaEl = document.getElementById('kpi-forecast-delta');
         deltaEl.innerText = (deltaPct > 0 ? '+' : '') + deltaPct.toFixed(1) + '%';
         deltaEl.className = 'delta ' + (deltaPct >= 0 ? 'positive' : 'negative');
+        
+        if (result.sharpe_ratio !== undefined) {
+          document.getElementById('kpi-sharpe').innerText = result.sharpe_ratio.toFixed(2);
+        }
+        if (result.max_drawdown !== undefined) {
+          document.getElementById('kpi-drawdown').innerText = result.max_drawdown.toFixed(1) + '%';
+        }
       }
     }
   </script>

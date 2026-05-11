@@ -1,224 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports | FinRisk AI Platform</title>
+  <link rel="stylesheet" href="/static/index.css">
+  <style>
+    .report-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 24px;
+      position: relative;
+    }
+    
+    .report-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--sur2);
+      color: var(--brand);
+      margin-bottom: 8px;
+      border: 1px solid var(--bdr2);
+      transition: all 0.3s var(--ease);
+    }
+    
+    .report-card:hover .report-icon {
+      background: var(--brand);
+      color: #000;
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 20px var(--bdim);
+    }
+    
+    .report-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .report-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: rgba(0,0,0,0.1);
+      border: 1px solid var(--bdr2);
+      border-radius: var(--rmd);
+      transition: all 0.3s var(--ease);
+    }
+    
+    .report-item:hover {
+      background: var(--sur2);
+      border-color: var(--brand);
+      transform: translateX(4px);
+    }
 
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports | FinRisk AI Platform</title>
-    <link rel="stylesheet" href="index.css">
-  </head>
+    /* Generator animation */
+    .generator-progress {
+      height: 4px;
+      background: var(--sur3);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 16px;
+      display: none;
+    }
+    
+    .generator-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand), var(--violet));
+      width: 0%;
+      transition: width 0.3s linear;
+    }
+    
+    /* Document preview thumbnail */
+    .doc-preview {
+      width: 100%;
+      height: 120px;
+      background: var(--sur-solid);
+      border: 1px solid var(--bdr2);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .doc-preview::after {
+      content: '';
+      position: absolute;
+      top: 10px; left: 10px; right: 40px; height: 6px; background: var(--sur3); border-radius: 3px;
+      box-shadow: 0 12px 0 var(--sur3), 0 24px 0 var(--sur3), 0 36px 0 var(--sur3);
+    }
+    
+    .report-card:hover .doc-preview::after {
+      background: rgba(0, 212, 154, 0.1);
+      box-shadow: 0 12px 0 rgba(0, 212, 154, 0.1), 0 24px 0 rgba(0, 212, 154, 0.1), 0 36px 0 rgba(0, 212, 154, 0.1);
+    }
+  </style>
+</head>
+<body>
 
-  <body>
-
-    <div class="topbar">
-      <div class="topbar-left">
-        <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
-          <div class="logo-icon">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M3 3v18h18" />
-              <path d="M18 17V9" />
-              <path d="M13 17V5" />
-              <path d="M8 17v-3" />
-            </svg>
-          </div>
-          <span class="logo-name">FinRisk AI</span>
-        </button>
-      </div>
-      <div class="context">Report Generator</div>
-      <div class="topbar-right">
-        <div class="status-dot">
-          <div class="dot"></div>
-          Operational
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
+        <div class="logo-icon">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
         </div>
-        <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-          </svg>
-        </button>
+        <span class="logo-name">FinRisk AI</span>
+      </button>
+    </div>
+    <div class="context">Reporting Engine</div>
+    <div class="topbar-right">
+      <div class="status-dot">
+        <div class="dot"></div>
+        Operational
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Navigation</div>
+      <a href="finrisk_kpi_dashboard.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        <span class="sidebar-item-text">Overview</span>
+      </a>
+      <a href="finrisk_fraud_detection.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span class="sidebar-item-text">Fraud Detection</span>
+      </a>
+      <a href="finrisk_portfolio_forecast.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span class="sidebar-item-text">Portfolio</span>
+      </a>
+      <a href="finrisk_regulatory_search.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <span class="sidebar-item-text">Regulatory</span>
+      </a>
+      <a href="finrisk_ai_agents.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sidebar-item-text">AI Agents</span>
+      </a>
+      <a href="finrisk_reports.html" class="sidebar-item active">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span class="sidebar-item-text">Reports</span>
+      </a>
+      <a href="finrisk_model_outputs.html" class="sidebar-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="sidebar-item-text">Model Outputs</span>
+      </a>
+
+      <div class="sidebar-footer">
+        <div class="profile-section">
+          <div class="profile-avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="user-profile-name">Admin</div>
+            <div class="profile-role">Risk Manager</div>
+          </div>
+        </div>
+        <a href="#" class="sidebar-item logout-item" onclick="handleLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="sidebar-item-text">Logout</span>
+        </a>
       </div>
     </div>
 
-    <div class="layout">
-      <div class="sidebar">
-        <div class="sidebar-label">Navigation</div>
-        <a href="finrisk_kpi_dashboard.html" class="sidebar-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 3v18h18" />
-            <path d="M18 17V9" />
-            <path d="M13 17V5" />
-            <path d="M8 17v-3" />
-          </svg>
-          <span class="sidebar-item-text">Overview</span>
-        </a>
-        <a href="finrisk_fraud_detection.html" class="sidebar-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4" />
-            <path d="M12 16h.01" />
-          </svg>
-          <span class="sidebar-item-text">Fraud Detection</span>
-        </a>
-        <a href="finrisk_portfolio_forecast.html" class="sidebar-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-          <span class="sidebar-item-text">Portfolio</span>
-        </a>
-        <a href="finrisk_regulatory_search.html" class="sidebar-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-          </svg>
-          <span class="sidebar-item-text">Regulatory</span>
-        </a>
-        <a href="finrisk_ai_agents.html" class="sidebar-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-          <span class="sidebar-item-text">AI Agents</span>
-        </a>
-        <a href="finrisk_reports.html" class="sidebar-item active">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="12" y1="18" x2="12" y2="12" />
-            <line x1="9" y1="15" x2="15" y2="15" />
-          </svg>
-          <span class="sidebar-item-text">Reports</span>
-        </a>
-        <a href="finrisk_model_outputs.html" class="sidebar-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-            <line x1="8" y1="21" x2="16" y2="21" />
-            <line x1="12" y1="17" x2="12" y2="21" />
-          </svg>
-          <span class="sidebar-item-text">Model Outputs</span>
-        </a>
-      </div>
-
-      <div class="main">
-        <h1 class="page-title">Generate PDF Reports</h1>
-
-        <div class="grid-2-1">
-          <!-- Left Column -->
-          <div class="flex-col">
-
-            <div class="card">
-              <h3 class="mb-4 weight-500">Fraud Case Report</h3>
-              <p class="muted mb-4">Generate a detailed PDF analysis of a specific transaction using the Fraud Expert AI
-                Agent.</p>
-
-              <div class="mb-4">
-                <label class="kpi-label mb-2" style="display:block;">Transaction ID</label>
-                <input type="text" id="fraud_tx_id" class="input-field" value="TX-94821">
-              </div>
-
-              <button class="btn btn-primary" style="justify-content: center; width: 200px;"
-                onclick="generateFraudReport()">
-                Generate Fraud Report ↗
-              </button>
-            </div>
-
-            <div class="card">
-              <h3 class="mb-4 weight-500">Investment Advice Report</h3>
-              <p class="muted mb-4">Generate a structured PDF containing tailored investment guidance from the AI
-                Advisor.</p>
-
-              <div class="mb-4">
-                <label class="kpi-label mb-2" style="display:block;">Investment Query</label>
-                <textarea id="inv_query" class="input-field"
-                  style="height: 80px; resize: none;">What is a good asset allocation strategy for high inflation environments?</textarea>
-              </div>
-
-              <button class="btn btn-primary"
-                style="justify-content: center; width: 200px; background-color: var(--amber);"
-                onclick="generateInvestmentReport()">
-                Generate Advice Report ↗
-              </button>
-            </div>
-
-          </div>
-
-          <!-- Right Column -->
-
+    <div class="main">
+      <div class="grid-2 stagger-2" style="margin-bottom: 40px; margin-top: 20px;">
+        <!-- Generate Fraud Report -->
+        <div class="card report-card">
+          <input type="text" id="query-fraud" class="input-field mb-3" placeholder="E.g., Analyze TX-94821 for fraud..." style="width: 100%;">
+          <button class="btn btn-primary" onclick="generateReport('fraud', this)" style="width: 100%; justify-content: center; background: var(--danger-red); border-color: var(--danger-red);">Generate PDF</button>
+          <div class="generator-progress" id="prog-fraud"><div class="generator-fill" id="fill-fraud" style="background: var(--danger-red);"></div></div>
         </div>
 
+        <!-- Generate Portfolio Report -->
+        <div class="card report-card">
+          <input type="text" id="query-portfolio" class="input-field mb-3" placeholder="E.g., Generate a 30-day forecast with allocation..." style="width: 100%;">
+          <button class="btn btn-primary" onclick="generateReport('portfolio', this)" style="width: 100%; justify-content: center; background: var(--amber); color: #000; border-color: var(--amber);">Generate PDF</button>
+          <div class="generator-progress" id="prog-portfolio"><div class="generator-fill" id="fill-portfolio" style="background: var(--amber);"></div></div>
+        </div>
       </div>
+
     </div>
+  </div>
 
-    <script src="app.js"></script>
-    <script>
-      async function generateFraudReport() {
-        const btn = document.querySelector('button[onclick="generateFraudReport()"]');
-        const origText = btn.innerText;
-        btn.innerText = "Generating PDF...";
-        btn.disabled = true;
+  <script src="/static/app.js?v=2"></script>
+  <script>
+    async function generateReport(type, btn) {
+      const origText = btn.innerText;
+      btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">↻</span> Compiling...';
+      btn.disabled = true;
+      btn.style.opacity = '0.7';
+      
+      const progBar = document.getElementById('prog-' + type);
+      const fillBar = document.getElementById('fill-' + type);
+      
+      progBar.style.display = 'block';
+      fillBar.style.width = '0%';
+      
+      // Simulate progress
+      let p = 0;
+      const interval = setInterval(() => {
+        p += Math.random() * 15;
+        if(p > 90) p = 90;
+        fillBar.style.width = p + '%';
+      }, 500);
 
-        const tx_id = document.getElementById('fraud_tx_id').value;
+      try {
+        let agent = 'investment_advice_agent';
+        let query = document.getElementById('query-' + type).value.trim();
+        if(!query) {
+           query = (type === 'fraud') ? 'Generate a summary report of high-risk transactions.' : 'Generate a portfolio forecast report with asset allocation breakdowns.';
+        }
+        
+        let txId = null;
+        if (type === 'fraud') {
+          agent = 'fraud_expert_agent';
+          // Attempt to extract TX-id if possible
+          const match = query.match(/TX-\d+/i);
+          txId = match ? match[0] : query; 
+        }
 
-        try {
-          const response = await fetch("http://localhost:8000/report/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ report_type: "fraud", tx_id: tx_id })
-          });
+        const result = await generatePDFReport(agent, query, txId);
+        
+        clearInterval(interval);
+        fillBar.style.width = '100%';
+        
+        setTimeout(() => {
+          btn.innerHTML = '✓ Complete';
+          btn.style.background = 'var(--brand)';
+          btn.style.borderColor = 'var(--brand)';
+          btn.style.color = '#000';
+          
+          if (result && result.pdf_url) {
+            // Trigger download
+            window.open(result.pdf_url, '_blank');
+          } else {
+            alert('Report generated, but PDF URL not returned.');
+          }
+          
+          setTimeout(() => {
+            btn.innerText = origText;
+            btn.disabled = false;
+            btn.style = ''; // Reset inline styles
+            progBar.style.display = 'none';
+          }, 3000);
+          
+        }, 500);
 
-          if (!response.ok) throw new Error("Failed to generate report");
-
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = "Fraud_Report_" + tx_id + ".pdf";
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-
-        } catch (err) {
-          console.error(err);
-          alert("Error generating report. Check console.");
-        } finally {
+      } catch (err) {
+        clearInterval(interval);
+        btn.innerText = 'Generation Failed';
+        btn.style.background = 'var(--danger-red)';
+        btn.style.borderColor = 'var(--danger-red)';
+        
+        setTimeout(() => {
           btn.innerText = origText;
           btn.disabled = false;
-        }
+          btn.style = '';
+          progBar.style.display = 'none';
+        }, 3000);
       }
-
-      async function generateInvestmentReport() {
-        const btn = document.querySelector('button[onclick="generateInvestmentReport()"]');
-        const origText = btn.innerText;
-        btn.innerText = "Generating PDF...";
-        btn.disabled = true;
-
-        const query = document.getElementById('inv_query').value;
-
-        try {
-          const response = await fetch("http://localhost:8000/report/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ report_type: "investment", query: query })
-          });
-
-          if (!response.ok) throw new Error("Failed to generate report");
-
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = "Investment_Advice_Report.pdf";
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-
-        } catch (err) {
-          console.error(err);
-          alert("Error generating report. Check console.");
-        } finally {
-          btn.innerText = origText;
-          btn.disabled = false;
-        }
-      }
-    </script>
-  </body>
-
+    }
+  </script>
+</body>
 </html>

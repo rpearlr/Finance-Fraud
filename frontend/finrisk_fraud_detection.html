@@ -4,7 +4,72 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fraud Detection | FinRisk AI Platform</title>
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="/static/index.css">
+  <style>
+    /* Specific styles for fraud detection */
+    .score-display {
+      font-size: 64px;
+      font-family: var(--fd);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      transition: color 0.5s var(--ease);
+      text-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .gauge-svg {
+      width: 100%;
+      height: 120px;
+      overflow: visible;
+    }
+    
+    .gauge-arc {
+      fill: none;
+      stroke-width: 12;
+      stroke-linecap: round;
+    }
+    
+    .gauge-arc-bg {
+      stroke: var(--sur2-solid);
+    }
+    
+    .gauge-needle {
+      transform-origin: 50% 100%;
+      transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    .feature-importance-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: var(--sur3);
+      position: relative;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    
+    .feature-importance-fill {
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border-radius: 3px;
+      transition: width 1s var(--ease), background-color 0.5s;
+    }
+    
+    .glass-input-group {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--bdr);
+      border-radius: var(--rlg);
+      padding: 16px;
+      margin-bottom: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    .glass-input-group:focus-within {
+      border-color: var(--brand);
+      box-shadow: inset 0 0 0 1px var(--bdim);
+    }
+  </style>
 </head>
 <body>
 
@@ -60,64 +125,81 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
         <span class="sidebar-item-text">Model Outputs</span>
       </a>
+
+      <div class="sidebar-footer">
+        <div class="profile-section">
+          <div class="profile-avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="profile-info">
+            <div class="profile-name" id="user-profile-name">Admin</div>
+            <div class="profile-role">Risk Manager</div>
+          </div>
+        </div>
+        <a href="#" class="sidebar-item logout-item" onclick="handleLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span class="sidebar-item-text">Logout</span>
+        </a>
+      </div>
     </div>
 
     <div class="main">
-      <h1 class="page-title">Fraud Detection Scoring</h1>
+      <h1 class="page-title stagger-1">Fraud Scoring Engine</h1>
 
       <div class="grid-1-16">
         <!-- Left Column -->
-        <div class="flex-col">
+        <div class="flex-col stagger-2">
           <!-- Score Form -->
           <div class="card">
-            <h3 class="mb-4 weight-500">Check Transaction Safety</h3>
+            <h3 class="mb-4 weight-500">Transaction Details</h3>
             
-            <div class="mb-2">
+            <div class="glass-input-group">
               <label class="kpi-label mb-2" style="display:block;">Transaction ID</label>
-              <input type="text" id="tx_id" class="input-field" value="TX-94821" readonly style="opacity: 0.7;">
+              <input type="text" id="tx_id" class="input-field" value="TX-94821" readonly style="opacity: 0.7; background: transparent; border-color: transparent; padding-left: 0;">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr; gap: 12px;" class="mb-4">
-              <div>
-                <label class="kpi-label mb-2" style="display:block;">Amount (₹)</label>
-                <input type="number" id="amount" class="input-field" value="2400.50">
-              </div>
-              <div>
-                <label class="kpi-label mb-2" style="display:block;">Time of Day</label>
-                <select id="time_of_day" class="input-field">
-                  <option value="morning">Morning (6 AM - 12 PM)</option>
-                  <option value="afternoon">Afternoon (12 PM - 6 PM)</option>
-                  <option value="evening">Evening (6 PM - 12 AM)</option>
-                  <option value="late_night" selected>Late Night (12 AM - 6 AM)</option>
-                </select>
-              </div>
-              <div>
-                <label class="kpi-label mb-2" style="display:block;">Merchant Category</label>
-                <select id="merchant" class="input-field">
-                  <option value="grocery">Local Grocery / Supermarket</option>
-                  <option value="online">Standard Online Shopping</option>
-                  <option value="electronics">High-End Electronics</option>
-                  <option value="foreign" selected>Foreign / Unrecognized Merchant</option>
-                </select>
-              </div>
-              <div>
-                <label class="kpi-label mb-2" style="display:block;">Recent Account Activity</label>
-                <select id="activity" class="input-field">
-                  <option value="normal">Normal spending</option>
-                  <option value="high" selected>Unusually high spending today</option>
-                </select>
-              </div>
+            <div class="glass-input-group">
+              <label class="kpi-label mb-2" style="display:block;">Amount (₹)</label>
+              <input type="number" id="amount" class="input-field" value="2400.50">
             </div>
 
-            <div class="flex-row mb-4" style="gap: 8px;">
-              <button class="btn" onclick="fillSample('fraud')" style="flex: 1; justify-content: center; font-size: 11px; background-color: rgba(226, 75, 74, 0.1); color: var(--danger-red); border-color: transparent;">Simulate Suspicious</button>
-              <button class="btn" onclick="fillSample('safe')" style="flex: 1; justify-content: center; font-size: 11px; background-color: rgba(29, 158, 117, 0.1); color: var(--brand-green); border-color: transparent;">Simulate Normal</button>
+            <div class="glass-input-group">
+              <label class="kpi-label mb-2" style="display:block;">Time of Day</label>
+              <select id="time_of_day" class="input-field">
+                <option value="morning">Morning (6 AM - 12 PM)</option>
+                <option value="afternoon">Afternoon (12 PM - 6 PM)</option>
+                <option value="evening">Evening (6 PM - 12 AM)</option>
+                <option value="late_night" selected>Late Night (12 AM - 6 AM)</option>
+              </select>
+            </div>
+
+            <div class="glass-input-group">
+              <label class="kpi-label mb-2" style="display:block;">Merchant Category</label>
+              <select id="merchant" class="input-field">
+                <option value="grocery">Local Grocery / Supermarket</option>
+                <option value="online">Standard Online Shopping</option>
+                <option value="electronics">High-End Electronics</option>
+                <option value="foreign" selected>Foreign / Unrecognized Merchant</option>
+              </select>
+            </div>
+
+            <div class="glass-input-group">
+              <label class="kpi-label mb-2" style="display:block;">Recent Account Activity</label>
+              <select id="activity" class="input-field">
+                <option value="normal">Normal spending</option>
+                <option value="high" selected>Unusually high spending today</option>
+              </select>
+            </div>
+
+            <div class="flex-row mb-4" style="gap: 12px;">
+              <button class="btn" onclick="fillSample('fraud')" style="flex: 1; justify-content: center; font-size: 11px; background-color: var(--ddim); color: var(--danger-red); border-color: transparent;">Simulate Suspicious</button>
+              <button class="btn" onclick="fillSample('safe')" style="flex: 1; justify-content: center; font-size: 11px; background-color: var(--bdim); color: var(--brand-green); border-color: transparent;">Simulate Normal</button>
             </div>
 
             <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="handleScore()">
-              Check Transaction Safety ↗
+              Analyze Risk Score ↗
             </button>
-            <button class="btn" style="width: 100%; justify-content: center; margin-top: 8px;" onclick="askAI()">
+            <button class="btn" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(124, 109, 250, 0.1); color: var(--violet); border-color: transparent;" onclick="askAI()">
               Ask AI Agent for Explanation ↗
             </button>
           </div>
@@ -126,26 +208,70 @@
         <!-- Right Column -->
         <div class="flex-col">
           <!-- Prediction Result -->
-          <div class="card flex-col" style="align-items: center; padding: 40px 20px;">
-            <div id="score-display" style="font-size: 48px; font-weight: 500; color: var(--danger-red); line-height: 1;">0.94</div>
-            <div class="muted mb-4" style="font-size: 13px;">Fraud probability</div>
+          <div class="card flex-col stagger-3" style="align-items: center; padding: 40px 20px;">
+            <div id="score-display" class="score-display" style="color: var(--danger-red);">0.94</div>
+            <div class="muted mb-4" style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">Fraud Probability</div>
             <span id="risk-display" class="badge badge-pill badge-high mb-4">HIGH RISK</span>
             
-            <div style="width: 100%; max-width: 400px; margin-top: 20px;">
-              <div class="gradient-track">
-                <!-- 88% visually maps to a score of 0.94 in some arbitrary scale, but let's place the needle at 88% -->
-                <div id="needle-display" class="needle" style="left: 88%;"></div>
-              </div>
-              <div class="flex-row" style="justify-content: space-between; font-size: 11px; color: var(--color-text-secondary);">
+            <div style="width: 100%; max-width: 320px; margin-top: 20px;">
+              <svg class="gauge-svg" viewBox="0 0 200 100">
+                <!-- Background Arc -->
+                <path class="gauge-arc gauge-arc-bg" d="M 20 90 A 80 80 0 0 1 180 90" />
+                
+                <!-- Color Gradients -->
+                <defs>
+                  <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="var(--brand-green)" />
+                    <stop offset="50%" stop-color="var(--amber)" />
+                    <stop offset="100%" stop-color="var(--danger-red)" />
+                  </linearGradient>
+                </defs>
+                <path class="gauge-arc" stroke="url(#gaugeGradient)" d="M 20 90 A 80 80 0 0 1 180 90" />
+                
+                <!-- Needle (Rotation centers at bottom middle: 100 90) -->
+                <!-- Default rotation for 0.94 is roughly 160 deg -->
+                <g id="gauge-needle" class="gauge-needle" style="transform: rotate(155deg); transform-origin: 100px 90px;">
+                  <polygon points="96,90 100,20 104,90" fill="var(--color-text-primary)" />
+                  <circle cx="100" cy="90" r="8" fill="var(--sur)" stroke="var(--color-text-primary)" stroke-width="2"/>
+                </g>
+              </svg>
+              <div class="flex-row" style="justify-content: space-between; font-size: 11px; color: var(--color-text-secondary); margin-top: -10px;">
                 <span>Safe</span>
                 <span>Review</span>
                 <span>Block</span>
               </div>
             </div>
+            
+            <!-- Dynamic Feature Importance Bar -->
+            <div style="width: 100%; margin-top: 32px; border-top: 1px solid var(--bdr); padding-top: 24px;">
+              <div class="kpi-label mb-2">Key Risk Drivers</div>
+              <div class="mb-2">
+                <div class="flex-row" style="justify-content: space-between; font-size: 11px; color: var(--tx2);">
+                  <span>Foreign Merchant</span>
+                  <span style="color: var(--danger-red);">High Impact</span>
+                </div>
+                <div class="feature-importance-bar"><div id="feat-1" class="feature-importance-fill" style="width: 85%; background: var(--danger-red);"></div></div>
+              </div>
+              <div class="mb-2">
+                <div class="flex-row" style="justify-content: space-between; font-size: 11px; color: var(--tx2);">
+                  <span>Velocity (24h)</span>
+                  <span style="color: var(--danger-red);">High Impact</span>
+                </div>
+                <div class="feature-importance-bar"><div id="feat-2" class="feature-importance-fill" style="width: 72%; background: var(--danger-red);"></div></div>
+              </div>
+              <div>
+                <div class="flex-row" style="justify-content: space-between; font-size: 11px; color: var(--tx2);">
+                  <span>Time of Day</span>
+                  <span style="color: var(--amber);">Medium Impact</span>
+                </div>
+                <div class="feature-importance-bar"><div id="feat-3" class="feature-importance-fill" style="width: 45%; background: var(--amber);"></div></div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Recent Predictions Table -->
-          <div class="card">
+          <div class="card stagger-4">
             <h3 class="mb-4 weight-500">Recent Predictions</h3>
             <table>
               <thead>
@@ -159,39 +285,32 @@
               </thead>
               <tbody id="recent-predictions-body">
                 <tr>
-                  <td>TX-94821</td>
+                  <td class="weight-500" style="color: var(--tx);">TX-94821</td>
                   <td>₹2,400.50</td>
-                  <td style="color: var(--danger-red); font-weight: 500;">0.94</td>
+                  <td style="color: var(--danger-red); font-weight: 600;">0.94</td>
                   <td><span class="badge badge-pill badge-high">HIGH</span></td>
                   <td class="muted">03:15 AM</td>
                 </tr>
                 <tr>
-                  <td>TX-94820</td>
+                  <td class="weight-500" style="color: var(--tx);">TX-94820</td>
                   <td>₹120.00</td>
-                  <td style="color: var(--brand-green); font-weight: 500;">0.02</td>
+                  <td style="color: var(--brand-green); font-weight: 600;">0.02</td>
                   <td><span class="badge badge-pill badge-low">LOW</span></td>
                   <td class="muted">03:12 AM</td>
                 </tr>
                 <tr>
-                  <td>TX-94819</td>
+                  <td class="weight-500" style="color: var(--tx);">TX-94819</td>
                   <td>₹45.50</td>
-                  <td style="color: var(--brand-green); font-weight: 500;">0.01</td>
+                  <td style="color: var(--brand-green); font-weight: 600;">0.01</td>
                   <td><span class="badge badge-pill badge-low">LOW</span></td>
                   <td class="muted">03:08 AM</td>
                 </tr>
                 <tr>
-                  <td>TX-94808</td>
+                  <td class="weight-500" style="color: var(--tx);">TX-94808</td>
                   <td>₹1,150.00</td>
-                  <td style="color: var(--amber); font-weight: 500;">0.68</td>
+                  <td style="color: var(--amber); font-weight: 600;">0.68</td>
                   <td><span class="badge badge-pill badge-med">MED</span></td>
                   <td class="muted">02:40 AM</td>
-                </tr>
-                <tr>
-                  <td>TX-94807</td>
-                  <td>₹890.25</td>
-                  <td style="color: var(--brand-green); font-weight: 500;">0.14</td>
-                  <td><span class="badge badge-pill badge-low">LOW</span></td>
-                  <td class="muted">02:35 AM</td>
                 </tr>
               </tbody>
             </table>
@@ -202,7 +321,7 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js?v=2"></script>
   <script>
     function fillSample(type) {
       if(type === 'fraud') {
@@ -211,19 +330,37 @@
         document.getElementById('time_of_day').value = 'late_night';
         document.getElementById('merchant').value = 'foreign';
         document.getElementById('activity').value = 'high';
+        
+        // Update feature importance visually
+        document.getElementById('feat-1').style.width = '85%';
+        document.getElementById('feat-1').style.background = 'var(--danger-red)';
+        document.getElementById('feat-2').style.width = '72%';
+        document.getElementById('feat-2').style.background = 'var(--danger-red)';
+        document.getElementById('feat-3').style.width = '45%';
+        document.getElementById('feat-3').style.background = 'var(--amber)';
+
       } else {
         document.getElementById('tx_id').value = 'TX-94822';
         document.getElementById('amount').value = '120.00';
         document.getElementById('time_of_day').value = 'afternoon';
         document.getElementById('merchant').value = 'grocery';
         document.getElementById('activity').value = 'normal';
+        
+        // Update feature importance visually
+        document.getElementById('feat-1').style.width = '12%';
+        document.getElementById('feat-1').style.background = 'var(--brand-green)';
+        document.getElementById('feat-2').style.width = '8%';
+        document.getElementById('feat-2').style.background = 'var(--brand-green)';
+        document.getElementById('feat-3').style.width = '5%';
+        document.getElementById('feat-3').style.background = 'var(--brand-green)';
       }
     }
 
     async function handleScore() {
       const btn = document.querySelector('button[onclick="handleScore()"]');
       const origText = btn.innerText;
-      btn.innerText = "Checking...";
+      btn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">↻</span> Analyzing...';
+      btn.style.opacity = '0.8';
       
       const timeOfDay = document.getElementById('time_of_day').value;
       const merchant = document.getElementById('merchant').value;
@@ -258,30 +395,60 @@
         V21: 0, V22: 0, V23: 0, V24: 0, V25: 0, V26: 0, V27: 0, V28: 0
       };
 
+      const transactionData = {
+        tx_id: document.getElementById('tx_id').value,
+        amount: parseFloat(document.getElementById('amount').value) || 0,
+        merchant: document.getElementById('merchant').value,
+        timestamp: new Date().toISOString(),
+        features: features
+      };
+
       try {
+        const ingestResult = await ingestTransaction(transactionData);
+        if (!ingestResult) {
+          console.warn("Ingest failed, but proceeding with prediction anyway.");
+        }
+
         const result = await predictFraud(features);
         if(result && result.fraud_score !== undefined) {
-          document.getElementById('score-display').innerText = result.fraud_score;
-          document.getElementById('risk-display').innerText = result.risk_level + " RISK";
+          
+          // Animate score display
+          const scoreEl = document.getElementById('score-display');
+          scoreEl.innerText = result.fraud_score;
+          
+          const riskBadge = document.getElementById('risk-display');
+          riskBadge.innerText = result.risk_level + " RISK";
           
           let riskClass = 'badge-low';
           let riskColor = 'var(--brand-green)';
-          if (result.risk_level === 'HIGH') { riskClass = 'badge-high'; riskColor = 'var(--danger-red)'; }
-          else if (result.risk_level === 'MEDIUM') { riskClass = 'badge-med'; riskColor = 'var(--amber)'; }
           
-          document.getElementById('risk-display').className = "badge badge-pill " + riskClass;
-          document.getElementById('needle-display').style.left = (result.fraud_score * 100) + '%';
+          if (result.risk_level === 'HIGH') { 
+            riskClass = 'badge-high'; 
+            riskColor = 'var(--danger-red)'; 
+          }
+          else if (result.risk_level === 'MEDIUM') { 
+            riskClass = 'badge-med'; 
+            riskColor = 'var(--amber)'; 
+          }
           
-          // Add to recent predictions table
+          scoreEl.style.color = riskColor;
+          riskBadge.className = "badge badge-pill " + riskClass;
+          
+          // Animate Gauge Needle
+          // 0 -> 0deg (left), 1 -> 180deg (right)
+          const rotation = result.fraud_score * 180;
+          document.getElementById('gauge-needle').style.transform = `rotate(${rotation}deg)`;
+          
+          // Add to recent predictions table with animation
           const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
           const amtStr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(parseFloat(document.getElementById('amount').value) || 0);
           
           const tbody = document.getElementById('recent-predictions-body');
           const newRow = `
-            <tr>
-              <td>${features.tx_id}</td>
+            <tr style="animation: slideDown 0.3s ease;">
+              <td class="weight-500" style="color: var(--tx);">${features.tx_id}</td>
               <td>${amtStr}</td>
-              <td style="color: ${riskColor}; font-weight: 500;">${result.fraud_score}</td>
+              <td style="color: ${riskColor}; font-weight: 600;">${result.fraud_score}</td>
               <td><span class="badge badge-pill ${riskClass}">${result.risk_level}</span></td>
               <td class="muted">${timeStr}</td>
             </tr>
@@ -298,6 +465,7 @@
         alert("Error calling backend.");
       } finally {
         btn.innerText = origText;
+        btn.style.opacity = '1';
       }
     }
     
@@ -307,9 +475,11 @@
       const query = "Explain why transaction " + tx_id + " was flagged as high risk with a score of " + score + ".";
       
       const origText = document.querySelector('button[onclick="askAI()"]').innerText;
-      document.querySelector('button[onclick="askAI()"]').innerText = "Asking...";
+      document.querySelector('button[onclick="askAI()"]').innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">↻</span> Asking...';
       
-      const result = await sendPrompt(query);
+      const result = await sendPrompt(query, 'fraud_expert_agent');
+      
+      // We don't have a chat UI on this page, so we use an alert or a simple modal (toast is better, but alert for now)
       alert("AI Response:\\n\\n" + result.answer);
       document.querySelector('button[onclick="askAI()"]').innerText = origText;
     }

@@ -1,5 +1,7 @@
-const API_BASE = "";
-
+let API_BASE = "";
+if (API_BASE.endsWith('/')) {
+  API_BASE = API_BASE.slice(0, -1);
+}
 // Global helper to send a query to the AI Agent endpoint
 async function sendPrompt(query, overrideAgent = null) {
   try {
@@ -28,6 +30,32 @@ async function sendPrompt(query, overrideAgent = null) {
       agent_used: "error",
       latency_ms: 0
     };
+  }
+}
+
+// Ingest endpoint caller for new data
+async function ingestTransaction(transaction) {
+  try {
+    const payload = {
+      data_type: "transaction",
+      transaction: transaction
+    };
+    const response = await fetch(`${API_BASE}/ingest`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error ingesting transaction:", error);
+    return null;
   }
 }
 
@@ -88,6 +116,22 @@ async function uploadPortfolioData(file, days = 30) {
 document.addEventListener("DOMContentLoaded", () => {
   console.log("FinRisk Frontend initialized");
 
+  // ── Auth Guard ──────────────────────────────────────────
+  const token = localStorage.getItem('finrisk_token');
+  const path = window.location.pathname;
+  
+  // If no token and not on login page, redirect to root (login)
+  if (!token && path !== '/' && !path.includes('login')) {
+    window.location.href = '/';
+    return;
+  }
+
+  // Update username in UI if exists
+  const userNameElem = document.getElementById('user-profile-name');
+  if (userNameElem && localStorage.getItem('finrisk_user')) {
+    userNameElem.textContent = localStorage.getItem('finrisk_user');
+  }
+
   // ── Theme management ──────────────────────────────────────
   const savedTheme = localStorage.getItem('finrisk-theme');
   if (savedTheme === 'dark') {
@@ -104,6 +148,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toggle) toggle.style.width = 'var(--sidebar-collapsed-w)';
   }
 });
+
+function handleLogout() {
+  localStorage.removeItem('finrisk_token');
+  localStorage.removeItem('finrisk_user');
+  // Optional: call backend logout
+  fetch(`${API_BASE}/auth/logout`, { method: 'POST' }).finally(() => {
+    window.location.href = '/';
+  });
+}
+window.handleLogout = handleLogout;
 
 function toggleTheme() {
   const isDark = document.documentElement.classList.toggle('dark');
@@ -183,10 +237,12 @@ async function fetchDashboardKPIs() {
         if (score >= 0.8) colorClass = 'var(--danger-red)';
 
         chartContainer.innerHTML += `
-          <div class="bar-row">
-            <div class="bar-label">${label}</div>
-            <div class="bar-track"><div class="bar-fill" style="width: ${pct}%; background-color: ${colorClass};"></div></div>
-            <div class="bar-val">${score.toFixed(2)}</div>
+          <div class="bar-row" style="display: flex; align-items: center; gap: 12px; width: 100%;">
+            <div class="bar-label" style="width: 50px; font-size: 11px; font-family: var(--fm); color: var(--tx2);">${label}</div>
+            <div class="bar-track" style="flex: 1; height: 8px; background: var(--sur2); border-radius: 4px; overflow: hidden;">
+              <div class="bar-fill" style="height: 100%; width: ${pct}%; background-color: ${colorClass}; border-radius: 4px; transition: width 1s var(--ease);"></div>
+            </div>
+            <div class="bar-val" style="width: 30px; font-size: 12px; font-weight: 500; text-align: right; color: var(--tx);">${score.toFixed(2)}</div>
           </div>
         `;
       });
@@ -216,6 +272,89 @@ async function fetchDashboardKPIs() {
     }
   } catch (err) {
     console.error("Dashboard fetch error:", err);
+  }
+}
+
+// ── Animation Helpers ─────────────────────────────────────
+
+function initSparklines() {
+  const dataMap = {
+    'spark-tx': [10, 15, 12, 18, 24, 20, 25, 22, 30, 28, 35],
+    'spark-fraud': [2, 1, 3, 2, 5, 3, 2, 4, 2, 1, 3],
+    'spark-score': [0.1, 0.12, 0.08, 0.15, 0.14, 0.11, 0.09, 0.12, 0.1, 0.08, 0.09],
+    'spark-port': [450, 452, 448, 455, 460, 458, 465, 470, 468, 475, 482],
+    'spark-forecast': [482, 485, 486, 488, 490, 491, 493, 495, 496, 498, 501],
+    'spark-sharpe': [1.35, 1.36, 1.37, 1.38, 1.36, 1.39, 1.40, 1.41, 1.42, 1.41, 1.42],
+    'spark-drawdown': [-4.1, -4.2, -4.5, -4.4, -4.6, -4.5, -4.4, -4.3, -4.2, -4.3, -4.3]
+  };
+
+  const colors = {
+    'spark-tx': 'var(--brand)',
+    'spark-fraud': 'var(--danger-red)',
+    'spark-score': 'var(--brand)',
+    'spark-port': 'var(--brand)',
+    'spark-forecast': 'var(--violet)',
+    'spark-sharpe': 'var(--brand-green)',
+    'spark-drawdown': 'var(--danger-red)'
+  };
+
+  Object.keys(dataMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    
+    const data = dataMap[id];
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const range = max - min || 1;
+    
+    let pathD = "";
+    data.forEach((val, i) => {
+      const x = (i / (data.length - 1)) * 100;
+      const y = 100 - ((val - min) / range) * 80 - 10; // 10% padding
+      pathD += (i === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`);
+    });
+
+    el.innerHTML = `
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="spark-path path-draw" d="${pathD}" stroke="${colors[id]}" />
+      </svg>
+    `;
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    initSparklines();
+  }, 300);
+});
+
+// Generate PDF Report caller
+async function generatePDFReport(agent, query, txId = null) {
+  try {
+    let report_type = agent === 'fraud_expert_agent' ? 'fraud' : 'investment';
+    let payload = { report_type: report_type, query: query };
+    if (report_type === 'fraud') {
+       payload.tx_id = txId || 'TX-999999';
+    }
+
+    const response = await fetch(`${API_BASE}/report/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    return { pdf_url: url };
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    return null;
   }
 }
 
